@@ -108,6 +108,10 @@ If you want Cloudflare to fork and deploy the repository for you, use the
 button in the README. Cloudflare will prompt for the public variables from
 `wrangler.toml` and the secrets from `.dev.vars.example`.
 
+If the flow opens the forked repository's **Actions** tab, enable workflows and
+continue. The repository includes a manual `workflow_dispatch` trigger for that
+deploy flow.
+
 After deployment finishes, copy the resulting Worker URL into your OIDC
 provider's allowed redirect URIs.
 

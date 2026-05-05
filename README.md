@@ -2,7 +2,7 @@
 
 A self-hosted email alias manager built as a Cloudflare Worker. It provides a simple API and web interface to manage Cloudflare Email Routing rules, allowing you to create and delete email masks on the fly.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samolego/flaremask)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samolego/flaremask/tree/master)
 
 
 (See [setup](./setup.md) for detailed instructions)
@@ -26,7 +26,8 @@ The deploy button now works as a self-contained Worker build:
 1. Click **Deploy to Cloudflare**.
 2. Fill in the Worker variables Cloudflare prompts for.
 3. Paste the required secrets from `.dev.vars.example`.
-4. After the first deploy, update your OIDC provider to allow the deployed `/auth/callback` URL.
+4. If Cloudflare asks you to enable GitHub Actions in the forked repository, do that and then continue.
+5. After the first deploy, update your OIDC provider to allow the deployed `/auth/callback` URL.
 
 ## Configuration
 
