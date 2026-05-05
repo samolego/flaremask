@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, untrack } from "svelte";
     import { AuthError } from "../lib/api.js";
     import { randomAlias } from "../lib/utils.js";
     import {
@@ -23,9 +23,8 @@
     let togglingId = $state(null);
     let copiedId = $state(null);
     let error = $state(null);
-    // Capture the initial suggestion once — we don't want reactive updates
     // eslint-disable-next-line svelte/reactivity
-    let newAlias = $state(initialAlias);
+    let newAlias = $state(untrack(() => initialAlias));
 
     onMount(load);
 
