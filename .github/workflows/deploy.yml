@@ -2,6 +2,8 @@ name: Deploy to Cloudflare Workers
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [deploy_to_cf_workers]
   push:
     branches: [master]
 
