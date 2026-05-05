@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Flaremask",
+  "version": "0.1.0",
+  "description": "Manage Cloudflare email aliases from your browser.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Flaremask"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "storage",
+    "identity",
+    "activeTab"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "flaremask@extension",
+      "strict_min_version": "109.0"
+    }
+  }
+}

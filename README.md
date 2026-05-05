@@ -37,5 +37,5 @@ Edit `wrangler.toml` to set your environment variables:
 Set the following secrets using `wrangler secret put <NAME>`:
 
 - `OIDC_CLIENT_SECRET`: The secret provided by your OIDC provider.
-- `CF_API_TOKEN`: Your Cloudflare API token.
+- `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token.
 - `JWT_SECRET`: A random string used to sign session tokens (min 32 chars).

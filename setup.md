@@ -94,7 +94,7 @@ Then push the three secrets (each command prompts interactively — nothing is s
 
 ```bash
 wrangler secret put OIDC_CLIENT_SECRET   # plain client secret from Step 1
-wrangler secret put CF_API_TOKEN         # API token from Step 2
+wrangler secret put CLOUDFLARE_API_TOKEN         # API token from Step 2
 wrangler secret put JWT_SECRET           # any random 32+ char string, e.g.: openssl rand -hex 32
 ```
 

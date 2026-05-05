@@ -1,3 +1,5 @@
+import { isTokenValid as _isTokenValid } from './utils.js';
+
 const TOKEN_KEY = 'flaremask_token';
 
 export function getToken() {
@@ -13,14 +15,7 @@ export function clearToken() {
 }
 
 export function isTokenValid() {
-  const token = getToken();
-  if (!token) return false;
-  try {
-    const { exp } = JSON.parse(atob(token.split('.')[1]));
-    return exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
+  return _isTokenValid(getToken());
 }
 
 /** Reads /#token=... set by the worker callback, stores it, clears the URL. */

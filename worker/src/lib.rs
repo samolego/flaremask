@@ -42,7 +42,7 @@ impl AppState {
             token_expiry: env.var("TOKEN_EXPIRY")?.to_string().parse().unwrap_or(1800),
             // secrets
             oidc_client_secret: env.secret("OIDC_CLIENT_SECRET")?.to_string(),
-            cf_api_token: env.secret("CF_API_TOKEN")?.to_string(),
+            cf_api_token: env.secret("CLOUDFLARE_API_TOKEN")?.to_string(),
             jwt_secret: env.secret("JWT_SECRET")?.to_string(),
         })
     }
@@ -95,9 +95,7 @@ const INDEX_HTML: &str = include_str!("../../client/dist/index.html");
 const APP_JS: &[u8] = include_bytes!("../../client/dist/assets/index.js");
 const APP_CSS: &[u8] = include_bytes!("../../client/dist/assets/index.css");
 
-async fn serve_index(
-    axum::extract::State(state): axum::extract::State<AppState>,
-) -> Response {
+async fn serve_index(axum::extract::State(state): axum::extract::State<AppState>) -> Response {
     // In dev, redirect to the Vite dev server so hot-reload works.
     if let Some(ref url) = state.frontend_url {
         return axum::response::Redirect::temporary(url).into_response();
@@ -111,20 +109,18 @@ async fn serve_index(
 
 async fn serve_js() -> Response {
     (
-        [(header::CONTENT_TYPE, "application/javascript; charset=utf-8")],
+        [(
+            header::CONTENT_TYPE,
+            "application/javascript; charset=utf-8",
+        )],
         APP_JS,
     )
         .into_response()
 }
 
 async fn serve_css() -> Response {
-    (
-        [(header::CONTENT_TYPE, "text/css; charset=utf-8")],
-        APP_CSS,
-    )
-        .into_response()
+    ([(header::CONTENT_TYPE, "text/css; charset=utf-8")], APP_CSS).into_response()
 }
-
 
 #[event(fetch)]
 async fn fetch(

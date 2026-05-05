@@ -87,11 +87,27 @@ async fn fetch_oidc_endpoints(issuer_url: &str) -> Result<OidcEndpoints, String>
         .map_err(|e| format!("OIDC discovery failed: {e}"))
 }
 
-pub async fn login(State(state): State<AppState>) -> Response {
-    send_wrapper::SendWrapper::new(login_impl(state)).await
+pub async fn login(
+    State(state): State<AppState>,
+    Query(params): Query<LoginQuery>,
+) -> Response {
+    send_wrapper::SendWrapper::new(login_impl(state, params.return_to)).await
 }
 
-async fn login_impl(state: AppState) -> Response {
+#[derive(Deserialize)]
+pub struct LoginQuery {
+    /// Optional post-auth redirect for browser extensions (allizom / chromiumapp only).
+    return_to: Option<String>,
+}
+
+fn is_extension_return_url(url: &str) -> bool {
+    url.starts_with("https://") && {
+        let host = url.trim_start_matches("https://").split('/').next().unwrap_or("");
+        host.ends_with(".extensions.allizom.org") || host.ends_with(".chromiumapp.org")
+    }
+}
+
+async fn login_impl(state: AppState, return_to: Option<String>) -> Response {
     let endpoints = match fetch_oidc_endpoints(&state.oidc_issuer_url).await {
         Ok(e) => e,
         Err(e) => {
@@ -118,8 +134,10 @@ async fn login_impl(state: AppState) -> Response {
         oauth_state,
     );
 
+    // Embed validated return_to in PKCE cookie (empty = use default frontend redirect).
+    let return_to_value = return_to.filter(|u| is_extension_return_url(u)).unwrap_or_default();
     // Combined to reduce cookie overhead and ensure atomic expiration.
-    let pkce_value = format!("{code_verifier}:{oauth_state}");
+    let pkce_value = format!("{code_verifier}:{oauth_state}:{return_to_value}");
     (
         [(SET_COOKIE, set_cookie(PKCE_COOKIE, &pkce_value, 300))],
         Redirect::to(&auth_url),
@@ -162,10 +180,17 @@ async fn callback_impl(state: AppState, params: CallbackQuery, cookie_str: Strin
         Some(v) => v,
         None => return (StatusCode::BAD_REQUEST, "Missing PKCE cookie").into_response(),
     };
-    let (code_verifier, expected_state) = match pkce_value.split_once(':') {
-        Some(pair) => pair,
+    // Format: "{code_verifier}:{oauth_state}:{return_to}" (return_to may be empty)
+    let mut parts = pkce_value.splitn(3, ':');
+    let code_verifier = match parts.next() {
+        Some(v) => v.to_string(),
         None => return (StatusCode::BAD_REQUEST, "Invalid PKCE cookie").into_response(),
     };
+    let expected_state = match parts.next() {
+        Some(v) => v.to_string(),
+        None => return (StatusCode::BAD_REQUEST, "Invalid PKCE cookie").into_response(),
+    };
+    let return_to = parts.next().unwrap_or("").to_string();
 
     let received_state = match params.state.as_deref() {
         Some(s) => s,
@@ -183,7 +208,7 @@ async fn callback_impl(state: AppState, params: CallbackQuery, cookie_str: Strin
         }
     };
 
-    let email = match fetch_user_email(&state, &endpoints, &code, code_verifier).await {
+    let email = match fetch_user_email(&state, &endpoints, &code, &code_verifier).await {
         Ok(e) => e,
         Err(e) => {
             worker::console_error!("Authentication failed: {e}");
@@ -204,14 +229,17 @@ async fn callback_impl(state: AppState, params: CallbackQuery, cookie_str: Strin
         }
     };
 
-    // Redirect to the frontend with the token in the URL fragment.
-    // so the redirect is same-origin (relative).
-    let base = state
-        .frontend_url
-        .as_deref()
-        .unwrap_or("")
-        .trim_end_matches('/');
-    let redirect_url = format!("{base}/#token={session_token}");
+    // Use extension return_to if provided, otherwise fall back to frontend URL.
+    let redirect_url = if !return_to.is_empty() {
+        format!("{return_to}#token={session_token}")
+    } else {
+        let base = state
+            .frontend_url
+            .as_deref()
+            .unwrap_or("")
+            .trim_end_matches('/');
+        format!("{base}/#token={session_token}")
+    };
     let mut response = Redirect::to(&redirect_url).into_response();
     response
         .headers_mut()
