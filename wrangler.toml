@@ -3,7 +3,7 @@ main = "worker/build/index.js"
 compatibility_date = "2026-05-03"
 
 [build]
-command = "cd client && npm install && npm run build && cd ../worker && worker-build --release"
+command = "npm run build"
 
 [vars]
 OIDC_ISSUER_URL = "https://your-oidc-url"

@@ -20,10 +20,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
 
-      - name: Install worker-build
-        run: cargo install -q "worker-build@^0.8"
+      - name: Install root dependencies
+        run: npm install
 
       - name: Deploy
         uses: cloudflare/wrangler-action@v3

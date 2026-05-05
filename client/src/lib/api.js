@@ -2,10 +2,11 @@ export class AuthError extends Error {}
 
 export function createApi(baseUrl, getToken, onAuthError) {
   async function request(path, options = {}) {
+    const token = await getToken();
     const res = await fetch(baseUrl + '/api/v1' + path, {
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`,
+        'Authorization': `Bearer ${token}`,
         ...options.headers,
       },
       ...options,

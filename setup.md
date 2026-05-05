@@ -102,6 +102,17 @@ wrangler secret put JWT_SECRET           # any random 32+ char string, e.g.: ope
 
 ## 4. Deploy
 
+### Deploy to Cloudflare button
+
+If you want Cloudflare to fork and deploy the repository for you, use the
+button in the README. Cloudflare will prompt for the public variables from
+`wrangler.toml` and the secrets from `.dev.vars.example`.
+
+After deployment finishes, copy the resulting Worker URL into your OIDC
+provider's allowed redirect URIs.
+
+### Manual Wrangler deploy
+
 ```bash
 wrangler deploy
 ```

@@ -1,0 +1,42 @@
+{
+  "name": "flaremask",
+  "private": true,
+  "scripts": {
+    "build": "cd client && npm install && npm run build && cd ../worker && cargo install -q 'worker-build@^0.8' && worker-build --release",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.87.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "OIDC_ISSUER_URL": {
+        "description": "Base URL of your OIDC provider, for example `https://auth.example.com`."
+      },
+      "OIDC_CLIENT_ID": {
+        "description": "OIDC client ID registered for Flaremask."
+      },
+      "OIDC_REDIRECT_URI": {
+        "description": "Callback URL for this Worker, for example `https://flaremask.<your-subdomain>.workers.dev/auth/callback`."
+      },
+      "CF_ZONE_ID": {
+        "description": "Cloudflare Zone ID for the domain where Email Routing is enabled."
+      },
+      "CF_EMAIL_DOMAIN": {
+        "description": "Optional domain name for Email Routing, such as `example.com`. Setting this avoids an extra zone lookup."
+      },
+      "TOKEN_EXPIRY": {
+        "description": "Session lifetime in seconds. The default is `3600`."
+      },
+      "OIDC_CLIENT_SECRET": {
+        "description": "OIDC client secret from your identity provider."
+      },
+      "CLOUDFLARE_API_TOKEN": {
+        "description": "Cloudflare API token with `Email Routing Rules: Edit` and optionally `Zone: Read` for the selected zone."
+      },
+      "JWT_SECRET": {
+        "description": "Random secret used to sign sessions. Generate one with `openssl rand -hex 32`."
+      }
+    }
+  }
+}

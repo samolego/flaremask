@@ -3,17 +3,34 @@
   "name": "Flaremask",
   "version": "0.1.0",
   "description": "Manage Cloudflare email aliases from your browser.",
+  "icons": {
+    "48": "icons/icon-192.png",
+    "96": "icons/icon-192.png",
+    "128": "icons/icon-192.png"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Flaremask"
+    "default_title": "Flaremask",
+    "default_icon": {
+      "48": "icons/icon-192.png",
+      "96": "icons/icon-192.png"
+    }
   },
   "background": {
     "scripts": ["background.js"]
   },
+  "optional_host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/icon-192.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "permissions": [
     "storage",
     "identity",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "browser_specific_settings": {
     "gecko": {

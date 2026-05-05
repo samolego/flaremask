@@ -1,0 +1,4 @@
+# Required secrets for local development and Deploy to Cloudflare.
+OIDC_CLIENT_SECRET=replace-with-your-oidc-client-secret
+CLOUDFLARE_API_TOKEN=replace-with-your-cloudflare-api-token
+JWT_SECRET=replace-with-a-random-32-byte-secret

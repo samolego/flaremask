@@ -2,20 +2,22 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
-import { copyFileSync, readFileSync, writeFileSync } from 'fs';
+import { copyFileSync, cpSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 
 const isExt = process.env.BUILD_TARGET === 'extension';
 
 /**
- * Builds background.js as IIFE, then copies manifest.json + popup.html to dist-ext root.
- * Firefox MV3 background scripts can't use ES module imports, so it must be a self-contained IIFE.
+ * Builds background.js + content.js as IIFEs, then copies manifest.json, popup.html,
+ * and the icons directory to dist-ext.
+ * Firefox MV3 background/content scripts can't use ES module imports.
  */
 function extensionAssets() {
   return {
     name: 'extension-assets',
     async closeBundle() {
-      // Build background as a self-contained IIFE (no import statements in output)
       const { build } = await import('vite');
+
+      // Build background as a self-contained IIFE
       await build({
         configFile: false,
         plugins: [svelte()],
@@ -30,6 +32,27 @@ function extensionAssets() {
           },
         },
       });
+
+      // Build content script as a self-contained IIFE
+      await build({
+        configFile: false,
+        plugins: [svelte({ emitCss: false })],
+        build: {
+          outDir: resolve(__dirname, 'dist-ext'),
+          emptyOutDir: false,
+          lib: {
+            entry: resolve(__dirname, 'src/extension/content/index.js'),
+            formats: ['iife'],
+            name: 'flaremaskContent',
+            fileName: () => 'content.js',
+          },
+        },
+      });
+
+      // Copy icons to dist-ext/icons/
+      const iconsOut = resolve(__dirname, 'dist-ext/icons');
+      if (!existsSync(iconsOut)) mkdirSync(iconsOut, { recursive: true });
+      cpSync(resolve(__dirname, 'public/icons'), iconsOut, { recursive: true });
 
       copyFileSync(
         resolve(__dirname, 'src/extension/manifest.json'),
@@ -74,3 +97,4 @@ export default defineConfig({
     },
   },
 });
+

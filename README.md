@@ -19,9 +19,18 @@ A self-hosted email alias manager built as a Cloudflare Worker. It provides a si
 2.  A Cloudflare **API Token** with `Email Routing: Edit` permissions.
 3.  An **OIDC Provider** (like Authelia, Kanidm, or Authentik).
 
+## Deploy to Cloudflare
+
+The deploy button now works as a self-contained Worker build:
+
+1. Click **Deploy to Cloudflare**.
+2. Fill in the Worker variables Cloudflare prompts for.
+3. Paste the required secrets from `.dev.vars.example`.
+4. After the first deploy, update your OIDC provider to allow the deployed `/auth/callback` URL.
+
 ## Configuration
 
-Edit `wrangler.toml` to set your environment variables:
+For manual deployments, edit `wrangler.toml` to set your environment variables:
 
 | Variable | Description |
 | :--- | :--- |
@@ -34,7 +43,7 @@ Edit `wrangler.toml` to set your environment variables:
 
 ### Secrets
 
-Set the following secrets using `wrangler secret put <NAME>`:
+Set the following secrets using `wrangler secret put <NAME>` (or provide them in the Deploy to Cloudflare flow):
 
 - `OIDC_CLIENT_SECRET`: The secret provided by your OIDC provider.
 - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token.

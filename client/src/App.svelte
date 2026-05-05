@@ -21,7 +21,7 @@
     <div class="flex min-h-screen items-center justify-center bg-gray-50">
         <div class="card w-full max-w-sm p-8">
             <div class="mb-6 flex items-center gap-2">
-                <span class="h-6 w-6 rounded-full bg-brand"></span>
+                <img src="/icons/icon-192.png" class="h-6 w-6 rounded" alt="Flaremask" />
                 <span class="text-lg font-semibold text-gray-900">Flaremask</span>
             </div>
             <p class="mb-6 text-sm text-gray-500">
@@ -38,7 +38,7 @@
     <nav class="border-b border-gray-200 bg-white">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
             <div class="flex items-center gap-2">
-                <span class="h-5 w-5 rounded-full bg-brand"></span>
+                <img src="/icons/icon-192.png" class="h-5 w-5 rounded" alt="Flaremask" />
                 <span class="font-semibold text-gray-900">Flaremask</span>
             </div>
             <button

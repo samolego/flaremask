@@ -7,8 +7,10 @@
         clearToken,
         getWorkerUrl,
         saveWorkerUrl,
+        getUseSiteUrl,
+        saveUseSiteUrl,
     } from "../lib/storage.js";
-    import { LoaderCircle, Settings, UserRound } from "lucide-svelte";
+    import { LoaderCircle, LogOut, Settings } from "lucide-svelte";
     import AliasManager from "../../components/AliasManager.svelte";
 
     let workerUrl = $state("");
@@ -19,6 +21,8 @@
     let signingIn = $state(false);
     let error = $state(null);
     let suggestedAlias = $state("");
+    let permissionGranted = $state(/** @type {boolean|null} */ (null));
+    let useSiteUrl = $state(true);
 
     let api = $state(null);
 
@@ -39,6 +43,12 @@
             },
         );
 
+        permissionGranted = await browser.permissions.contains({
+            origins: ["<all_urls>"],
+        });
+
+        useSiteUrl = await getUseSiteUrl();
+
         // Pre-fill alias from current tab domain
         try {
             const [tab] = await browser.tabs.query({
@@ -47,17 +57,27 @@
             });
             if (tab?.url) {
                 const host = new URL(tab.url).hostname.replace(/^www\./, "");
-                suggestedAlias = randomAlias() + "-" + host.split(".")[0];
+                const site = host.split(".")[0];
+                suggestedAlias = useSiteUrl
+                    ? randomAlias() + "-" + site
+                    : randomAlias();
             }
         } catch {
             /* no tab access */
         }
     });
 
+    async function requestSitePermission() {
+        // Fire the request then close — Firefox shows its own native permission UI
+        browser.permissions.request({ origins: ["<all_urls>"] });
+        window.close();
+    }
+
     async function saveConfig() {
         const url = urlInput.trim();
         if (!url) return;
         await saveWorkerUrl(url);
+        await saveUseSiteUrl(useSiteUrl);
         workerUrl = url;
         configuring = false;
         api = createApi(workerUrl, getToken, async () => {
@@ -97,9 +117,20 @@
 <!-- Configure screen -->
 {#if configuring}
     <div class="flex min-h-50 flex-col justify-center p-6">
-        <div class="mb-4 flex items-center gap-2">
-            <span class="h-5 w-5 rounded-full bg-brand"></span>
-            <span class="font-semibold text-gray-900">Flaremask</span>
+        <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <img src="../icons/icon-192.png" class="h-5 w-5 rounded" alt="Flaremask" />
+                <span class="font-semibold text-gray-900">Flaremask</span>
+            </div>
+            {#if authenticated}
+                <button
+                    onclick={logout}
+                    class="btn-icon text-xs text-gray-400 hover:text-red-500"
+                    title="Sign out"
+                >
+                    <LogOut size={13} />Sign out
+                </button>
+            {/if}
         </div>
         <p class="mb-4 text-sm text-gray-500">
             Enter your worker URL to get started.
@@ -118,6 +149,14 @@
                 required
                 class="form-input"
             />
+            <label class="flex cursor-pointer items-center gap-2 py-1 text-sm text-gray-600">
+                <input
+                    type="checkbox"
+                    bind:checked={useSiteUrl}
+                    class="accent-brand h-3.5 w-3.5 cursor-pointer rounded"
+                />
+                Include site name in suggestions
+            </label>
             <button type="submit" class="btn-primary justify-center"
                 >Save</button
             >
@@ -128,7 +167,7 @@
 {:else if !authenticated}
     <div class="flex min-h-50 flex-col justify-center p-6">
         <div class="mb-4 flex items-center gap-2">
-            <span class="h-5 w-5 rounded-full bg-brand"></span>
+            <img src="../icons/icon-192.png" class="h-5 w-5 rounded" alt="Flaremask" />
             <span class="font-semibold text-gray-900">Flaremask</span>
         </div>
         <p class="mb-4 text-sm text-gray-500">
@@ -161,7 +200,7 @@
             class="flex items-center justify-between border-b border-gray-200 px-4 py-2"
         >
             <div class="flex items-center gap-2">
-                <span class="h-4 w-4 rounded-full bg-brand"></span>
+                <img src="../icons/icon-192.png" class="h-4 w-4 rounded" alt="Flaremask" />
                 <span class="text-sm font-semibold text-gray-900"
                     >Flaremask</span
                 >
@@ -177,17 +216,28 @@
                 >
                     <Settings size={14} />
                 </button>
-                <button
-                    onclick={logout}
-                    class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800"
-                    title="Sign out"
-                >
-                    <UserRound size={14} />Sign out
-                </button>
             </div>
         </nav>
 
         <div class="p-4">
+            {#if permissionGranted === false}
+                <div
+                    class="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3"
+                >
+                    <span class="mt-0.5 text-amber-500">⚠</span>
+                    <div class="flex-1 text-xs text-amber-800">
+                        <p class="mb-1.5 font-medium">
+                            Website access not granted
+                        </p>
+                        <button
+                            onclick={requestSitePermission}
+                            class="rounded bg-amber-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-amber-600"
+                        >
+                            Enable on all websites
+                        </button>
+                    </div>
+                </div>
+            {/if}
             <AliasManager {api} compact initialAlias={suggestedAlias} />
         </div>
     </div>
