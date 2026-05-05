@@ -1,0 +1,8 @@
+target
+dist
+build
+node_modules
+.wrangler
+.idea
+.env
+.dev.vars
