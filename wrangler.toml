@@ -5,6 +5,11 @@ compatibility_date = "2026-05-03"
 [build]
 command = "npm run build"
 
+[assets]
+directory = "./client/dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/auth/*", "/api/*"]
+
 [vars]
 OIDC_ISSUER_URL = "https://your-oidc-url"
 OIDC_CLIENT_ID = "flaremask"

@@ -87,10 +87,7 @@ async fn fetch_oidc_endpoints(issuer_url: &str) -> Result<OidcEndpoints, String>
         .map_err(|e| format!("OIDC discovery failed: {e}"))
 }
 
-pub async fn login(
-    State(state): State<AppState>,
-    Query(params): Query<LoginQuery>,
-) -> Response {
+pub async fn login(State(state): State<AppState>, Query(params): Query<LoginQuery>) -> Response {
     send_wrapper::SendWrapper::new(login_impl(state, params.return_to)).await
 }
 
@@ -102,7 +99,11 @@ pub struct LoginQuery {
 
 fn is_extension_return_url(url: &str) -> bool {
     url.starts_with("https://") && {
-        let host = url.trim_start_matches("https://").split('/').next().unwrap_or("");
+        let host = url
+            .trim_start_matches("https://")
+            .split('/')
+            .next()
+            .unwrap_or("");
         host.ends_with(".extensions.allizom.org") || host.ends_with(".chromiumapp.org")
     }
 }
@@ -135,7 +136,9 @@ async fn login_impl(state: AppState, return_to: Option<String>) -> Response {
     );
 
     // Embed validated return_to in PKCE cookie (empty = use default frontend redirect).
-    let return_to_value = return_to.filter(|u| is_extension_return_url(u)).unwrap_or_default();
+    let return_to_value = return_to
+        .filter(|u| is_extension_return_url(u))
+        .unwrap_or_default();
     // Combined to reduce cookie overhead and ensure atomic expiration.
     let pkce_value = format!("{code_verifier}:{oauth_state}:{return_to_value}");
     (
@@ -229,16 +232,11 @@ async fn callback_impl(state: AppState, params: CallbackQuery, cookie_str: Strin
         }
     };
 
-    // Use extension return_to if provided, otherwise fall back to frontend URL.
+    // Use extension return_to if provided, otherwise fall back to the root (served by Cloudflare assets).
     let redirect_url = if !return_to.is_empty() {
         format!("{return_to}#token={session_token}")
     } else {
-        let base = state
-            .frontend_url
-            .as_deref()
-            .unwrap_or("")
-            .trim_end_matches('/');
-        format!("{base}/#token={session_token}")
+        format!("/#token={session_token}")
     };
     let mut response = Redirect::to(&redirect_url).into_response();
     response

@@ -3,7 +3,6 @@ use axum::{
     http::{header, Method, StatusCode},
     middleware::{self, Next},
     response::{IntoResponse, Response},
-    routing::get,
     Router,
 };
 use tower_service::Service;
@@ -18,7 +17,6 @@ pub struct AppState {
     pub oidc_client_id: String,
     pub oidc_client_secret: String,
     pub oidc_redirect_uri: String,
-    pub frontend_url: Option<String>,
     /// Allowed CORS origin for the API. Set to the frontend URL (Pages domain)
     /// in production. Defaults to `*` when absent.
     pub allowed_origin: Option<String>,
@@ -35,7 +33,6 @@ impl AppState {
             oidc_issuer_url: env.var("OIDC_ISSUER_URL")?.to_string(),
             oidc_client_id: env.var("OIDC_CLIENT_ID")?.to_string(),
             oidc_redirect_uri: env.var("OIDC_REDIRECT_URI")?.to_string(),
-            frontend_url: env.var("FRONTEND_URL").ok().map(|v| v.to_string()),
             allowed_origin: env.var("ALLOWED_ORIGIN").ok().map(|v| v.to_string()),
             cf_zone_id: env.var("CF_ZONE_ID")?.to_string(),
             cf_email_domain: env.var("CF_EMAIL_DOMAIN").ok().map(|v| v.to_string()),
@@ -85,41 +82,7 @@ fn router(state: AppState) -> Router {
                 cors_middleware,
             )),
         )
-        .route("/", get(serve_index))
-        .route("/assets/index.js", get(serve_js))
-        .route("/assets/index.css", get(serve_css))
         .with_state(state)
-}
-
-const INDEX_HTML: &str = include_str!("../../client/dist/index.html");
-const APP_JS: &[u8] = include_bytes!("../../client/dist/assets/index.js");
-const APP_CSS: &[u8] = include_bytes!("../../client/dist/assets/index.css");
-
-async fn serve_index(axum::extract::State(state): axum::extract::State<AppState>) -> Response {
-    // In dev, redirect to the Vite dev server so hot-reload works.
-    if let Some(ref url) = state.frontend_url {
-        return axum::response::Redirect::temporary(url).into_response();
-    }
-    (
-        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
-        INDEX_HTML,
-    )
-        .into_response()
-}
-
-async fn serve_js() -> Response {
-    (
-        [(
-            header::CONTENT_TYPE,
-            "application/javascript; charset=utf-8",
-        )],
-        APP_JS,
-    )
-        .into_response()
-}
-
-async fn serve_css() -> Response {
-    ([(header::CONTENT_TYPE, "text/css; charset=utf-8")], APP_CSS).into_response()
 }
 
 #[event(fetch)]

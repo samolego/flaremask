@@ -140,16 +140,26 @@ fn cf_headers(token: &str) -> Result<Headers, String> {
 
 pub async fn get_zone_domain(token: &str, zone_id: &str) -> Result<String, String> {
     #[derive(Deserialize)]
-    struct Zone { name: String }
+    struct Zone {
+        name: String,
+    }
 
     let url = format!("{CF_API}/zones/{zone_id}");
     let mut init = RequestInit::new();
-    init.with_method(Method::Get).with_headers(cf_headers(token)?);
+    init.with_method(Method::Get)
+        .with_headers(cf_headers(token)?);
     let req = Request::new_with_init(&url, &init).map_err(|e| e.to_string())?;
-    let mut resp = Fetch::Request(req).send().await.map_err(|e| e.to_string())?;
+    let mut resp = Fetch::Request(req)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let body: ApiResponse<Zone> = resp.json().await.map_err(|e| e.to_string())?;
     if !body.success {
-        let msg: Vec<&str> = body.errors.iter().filter_map(|e| e.message.as_deref()).collect();
+        let msg: Vec<&str> = body
+            .errors
+            .iter()
+            .filter_map(|e| e.message.as_deref())
+            .collect();
         return Err(format!("CF API error: {}", msg.join("; ")));
     }
     Ok(body.result.ok_or("CF API returned null zone")?.name)

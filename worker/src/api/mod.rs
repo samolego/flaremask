@@ -79,7 +79,14 @@ async fn list_impl(oidc_email: String, state: AppState) -> impl IntoResponse {
         })
         .collect();
 
-    (StatusCode::OK, Json(ListResponse { destination: real_email, aliases })).into_response()
+    (
+        StatusCode::OK,
+        Json(ListResponse {
+            destination: real_email,
+            aliases,
+        }),
+    )
+        .into_response()
 }
 
 async fn create_impl(
