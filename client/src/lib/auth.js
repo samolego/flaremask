@@ -1,11 +1,11 @@
-const TOKEN_KEY = "flaremask_token";
+import { saveToken } from "./storage.js";
 
 /** Reads /#token=... set by the worker callback, stores it, clears the URL. */
-export function consumeTokenFromHash() {
+export async function consumeTokenFromHash() {
   const params = new URLSearchParams(window.location.hash.slice(1));
   const token = params.get("token");
   if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
+    await saveToken(token);
     history.replaceState(null, "", "/");
   }
 }

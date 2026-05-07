@@ -46,7 +46,7 @@
   }
   .item:hover {
     background: var(--fm-hover-bg);
-    color: var(--fm-brand);
+    color: var(--color-brand);
   }
   .item.root {
     color: var(--fm-text-muted);
@@ -54,7 +54,7 @@
   }
   .item.root:hover {
     background: var(--fm-hover-bg);
-    color: var(--fm-brand);
+    color: var(--color-brand);
   }
 
   .login-label {

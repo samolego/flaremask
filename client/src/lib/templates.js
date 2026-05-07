@@ -2,8 +2,10 @@ export const DEFAULT_ALIAS_TEMPLATE = __IS_EXTENSION__
   ? `{site}.{adj}-{noun}-{rnd}`
   : `{adj}-{noun}-{rnd}`;
 
-export { default as ADJECTIVES } from "./data/adjectives.json";
-export { default as NOUNS } from "./data/nouns.json";
+import ADJECTIVES from "./data/adjectives.json";
+import NOUNS from "./data/nouns.json";
+
+export { ADJECTIVES, NOUNS };
 
 /**
  * Resolve an alias template string.

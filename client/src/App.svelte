@@ -12,7 +12,6 @@
     import AliasManager from "./components/alias/AliasManager.svelte";
     import SettingsPanel from "./components/settings/SettingsPanel.svelte";
 
-    consumeTokenFromHash();
     let authenticated = $state(false);
     let loading = $state(true);
     let showSettings = $state(false);
@@ -25,6 +24,7 @@
     });
 
     onMount(async () => {
+        await consumeTokenFromHash();
         const token = await getToken();
         authenticated = isTokenValid(token);
         if (!authenticated) await clearToken();

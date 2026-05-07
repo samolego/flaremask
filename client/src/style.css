@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@import "./lib/theme.css";
 
-@theme {
-  --color-brand: #F6821F;
-  --color-brand-dark: #e07318;
+@theme inline {
+  --color-brand: var(--color-brand);
+  --color-brand-dark: var(--color-brand-dark);
 }
 
 @layer components {
