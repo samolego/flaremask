@@ -92,6 +92,10 @@ export function resolveTemplate(template, siteName = "") {
 export function extractSiteName(hostname, title = "") {
   const host = hostname.replace(/^www\./, "").toLowerCase();
 
+  // Second-to-top-level domain: "mysite" from "url.mysite.com"
+  const parts = host.split(".");
+  const name = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+
   if (title) {
     const words = title
       .toLowerCase()
@@ -100,14 +104,12 @@ export function extractSiteName(hostname, title = "") {
 
     let best = "";
     for (const word of words) {
-      if (host.includes(word) && word.length > best.length) {
+      if (host.includes(word) && word.length > best.length && best !== name) {
         best = word;
       }
     }
     if (best) return best;
   }
 
-  // Second-to-top-level domain: "mysite" from "url.mysite.com"
-  const parts = host.split(".");
-  return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+  return name;
 }
