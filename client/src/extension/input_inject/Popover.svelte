@@ -149,9 +149,21 @@
 </div>
 
 <style>
-    @import "../../lib/theme.css";
-
     .pop {
+        --color-brand: #f6821f;
+        --color-brand-dark: #e07318;
+        --fm-brand-ring: rgba(246, 130, 31, 0.2);
+        --fm-text: #374151;
+        --fm-text-dark: #111827;
+        --fm-text-secondary: #6b7280;
+        --fm-text-muted: #9ca3af;
+        --fm-bg: #fff;
+        --fm-border: #e5e7eb;
+        --fm-border-input: #d1d5db;
+        --fm-border-light: #f3f4f6;
+        --fm-hover-bg: #fff7ed;
+        --fm-error: #ef4444;
+
         position: fixed;
         background: var(--fm-bg);
         border: 1px solid var(--fm-border);

@@ -1,67 +1,66 @@
 @import "tailwindcss";
-@import "./lib/theme.css";
 
-@theme inline {
-  --color-brand: var(--color-brand);
-  --color-brand-dark: var(--color-brand-dark);
+@theme {
+    --color-brand: #f6821f;
+    --color-brand-dark: #e07318;
 }
 
 @layer components {
-  .card {
-    @apply rounded-lg border border-gray-200 bg-white shadow-sm;
-  }
+    .card {
+        @apply rounded-lg border border-gray-200 bg-white shadow-sm;
+    }
 
-  .card-header {
-    @apply flex items-center justify-between border-b border-gray-200 px-5 py-3;
-  }
+    .card-header {
+        @apply flex items-center justify-between border-b border-gray-200 px-5 py-3;
+    }
 
-  .section-title {
-    @apply text-sm font-semibold text-gray-700;
-  }
+    .section-title {
+        @apply text-sm font-semibold text-gray-700;
+    }
 
-  .form-input {
-    @apply min-w-0 flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm
+    .form-input {
+        @apply min-w-0 flex-1 rounded border border-gray-300 bg-white px-3 py-2 text-sm
            text-gray-900 placeholder-gray-400
            focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;
-  }
+    }
 
-  .btn-primary {
-    @apply flex items-center gap-1.5 rounded bg-brand px-4 py-2 text-sm font-medium
+    .btn-primary {
+        @apply flex items-center gap-1.5 rounded bg-brand px-4 py-2 text-sm font-medium
            text-white transition-colors hover:bg-brand-dark disabled:opacity-50;
-  }
+    }
 
-  .btn-outline {
-    @apply rounded border border-gray-300 bg-white p-2 text-gray-500
+    .btn-outline {
+        @apply rounded border border-gray-300 bg-white p-2 text-gray-500
            transition-colors hover:border-brand hover:text-brand;
-  }
+    }
 
-  .btn-icon {
-    @apply shrink-0 rounded p-1 text-gray-400 transition-colors
+    .btn-icon {
+        @apply shrink-0 rounded p-1 text-gray-400 transition-colors
            hover:bg-gray-100 hover:text-gray-700;
-  }
+    }
 
-  .btn-danger-icon {
-    @apply shrink-0 rounded p-1 text-gray-400 transition-colors
+    .btn-danger-icon {
+        @apply shrink-0 rounded p-1 text-gray-400 transition-colors
            hover:bg-red-50 hover:text-red-600;
-  }
+    }
 
-  .badge {
-    @apply inline-flex items-center gap-1 rounded-full bg-gray-100
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full bg-gray-100
            px-2.5 py-0.5 text-xs text-gray-500;
-  }
+    }
 
-  .badge-brand {
-    @apply shrink-0 rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand;
-  }
+    .badge-brand {
+        @apply shrink-0 rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand;
+    }
 
-  .toggle {
-    @apply relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center
+    .toggle {
+        @apply relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center
            rounded-full transition-colors
            focus:outline-none focus-visible:ring-2 focus-visible:ring-brand
            disabled:opacity-70;
-  }
+    }
 
-  .toggle-thumb {
-    @apply inline-block h-4 w-4 rounded-full bg-white shadow transition-transform;
-  }
+    .toggle-thumb {
+        @apply inline-block h-4 w-4 rounded-full bg-white shadow transition-transform;
+    }
 }
