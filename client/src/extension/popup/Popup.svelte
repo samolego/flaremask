@@ -14,9 +14,7 @@
         saveWorkerUrl,
         getAliasTemplate,
         saveAliasTemplate,
-        loadAliasCache,
-        saveAliasCache,
-    } from "../lib/storage.js";
+    } from "../../lib/storage.js";
     import { LoaderCircle, Settings } from "lucide-svelte";
     import AliasManager from "../../components/AliasManager.svelte";
     import OnboardingView from "./OnboardingView.svelte";
@@ -280,8 +278,6 @@
                 {siteName}
                 compact
                 initialAlias={suggestedAlias}
-                loadCache={loadAliasCache}
-                saveCache={saveAliasCache}
             />
         </div>
     </div>

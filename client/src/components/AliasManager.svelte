@@ -1,6 +1,7 @@
 <script>
     import { onMount, untrack } from "svelte";
     import { AuthError } from "../lib/api.js";
+    import { getAliases, sortAliases } from "../lib/aliases.js";
     import { resolveTemplate, DEFAULT_ALIAS_TEMPLATE } from "../lib/utils.js";
     import {
         Plus,
@@ -20,8 +21,6 @@
         initialAlias = "",
         aliasTemplate = DEFAULT_ALIAS_TEMPLATE,
         siteName = "",
-        loadCache = null,
-        saveCache = null,
     } = $props();
 
     // Icon size varies between full-page (16) and compact extension popup (14)
@@ -38,50 +37,19 @@
 
     onMount(load);
 
-    /** Returns true if the two alias lists differ in membership or enabled state. */
-    function aliasesChanged(prev, next) {
-        if (prev.length !== next.length) return true;
-        const prevMap = new Map(prev.map((a) => [a.id, a.enabled]));
-        return next.some(
-            (a) => !prevMap.has(a.id) || prevMap.get(a.id) !== a.enabled,
-        );
-    }
-
     async function load() {
         error = null;
-
-        let cachedAliases = [];
-        let cachedDestination = "";
-
-        // Show cached data immediately (stale-while-revalidate)
-        if (loadCache) {
-            const cached = await loadCache();
-            if (cached) {
-                cachedAliases = cached.aliases ?? [];
-                cachedDestination = cached.destination ?? "";
-                aliases = cachedAliases;
-                destination = cachedDestination;
+        await getAliases(api, {
+            onUpdate(fresh, dest, { fromCache }) {
+                aliases = sortAliases(fresh);
+                destination = dest;
                 loading = false;
-            }
-        }
-
-        try {
-            const data = await api.listAliases();
-            const fresh = data?.aliases ?? [];
-            const freshDest = data?.destination ?? "";
-            if (
-                aliasesChanged(cachedAliases, fresh) ||
-                freshDest !== cachedDestination
-            ) {
-                aliases = fresh;
-                destination = freshDest;
-            }
-            if (saveCache) await saveCache(data);
-        } catch (e) {
-            if (!(e instanceof AuthError)) error = e.message;
-        } finally {
-            loading = false;
-        }
+            },
+            onError(e) {
+                if (!(e instanceof AuthError)) error = e.message;
+                loading = false;
+            },
+        });
     }
 
     async function create() {

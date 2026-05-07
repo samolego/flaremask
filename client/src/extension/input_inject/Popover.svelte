@@ -43,9 +43,16 @@
     suggestion = await hostSuggestion();
     reposition();
 
+    // Show cached aliases immediately (stale-while-revalidate)
+    const cached = await browser.runtime.sendMessage({ type: 'getCachedAliases' });
+    if (cached?.ok) {
+      aliases = sortAliases(cached.aliases ?? []);
+      aliasesLoading = false;
+    }
+
     try {
       const res = await browser.runtime.sendMessage({ type: 'listAliases' });
-      aliases = res?.ok ? sortAliases(res.aliases ?? []) : [];
+      if (res?.ok) aliases = sortAliases(res.aliases ?? []);
     } finally {
       aliasesLoading = false;
     }

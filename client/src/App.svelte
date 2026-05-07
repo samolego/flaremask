@@ -1,32 +1,39 @@
 <script>
+    import { onMount } from "svelte";
+    import { consumeTokenFromHash, isTokenValid } from "./lib/auth.js";
     import {
         clearToken,
-        consumeTokenFromHash,
-        isTokenValid,
+        getAliasTemplate,
         getToken,
-    } from "./lib/auth.js";
+        saveAliasTemplate,
+    } from "./lib/storage.js";
     import { createApi } from "./lib/api.js";
-    import { getAliasTemplate, saveAliasTemplate } from "./lib/settings.js";
-    import { loadAliasCache, saveAliasCache } from "./lib/aliasCache.js";
     import { LogOut, Settings } from "lucide-svelte";
     import AliasManager from "./components/AliasManager.svelte";
     import SettingsPanel from "./components/SettingsPanel.svelte";
 
     consumeTokenFromHash();
-    let authenticated = $state(isTokenValid(getToken()));
-
-    if (!authenticated) clearToken();
+    let authenticated = $state(false);
+    let loading = $state(true);
     let showSettings = $state(false);
-    let aliasTemplate = $state(getAliasTemplate());
+    let aliasTemplate = $state("");
     let editTemplate = $state("");
 
-    const api = createApi("", getToken, () => {
-        clearToken();
+    const api = createApi("", getToken, async () => {
+        await clearToken();
         authenticated = false;
     });
 
-    function logout() {
-        clearToken();
+    onMount(async () => {
+        const token = await getToken();
+        authenticated = isTokenValid(token);
+        if (!authenticated) await clearToken();
+        aliasTemplate = await getAliasTemplate();
+        loading = false;
+    });
+
+    async function logout() {
+        await clearToken();
         authenticated = false;
     }
 
@@ -35,14 +42,18 @@
         showSettings = true;
     }
 
-    function saveSettings() {
+    async function saveSettings() {
         aliasTemplate = editTemplate;
-        saveAliasTemplate(aliasTemplate);
+        await saveAliasTemplate(aliasTemplate);
         showSettings = false;
     }
 </script>
 
-{#if !authenticated}
+{#if loading}
+    <div class="flex min-h-screen items-center justify-center bg-gray-50">
+        <div class="text-sm text-gray-400">Loading…</div>
+    </div>
+{:else if !authenticated}
     <div class="flex min-h-screen items-center justify-center bg-gray-50">
         <div class="card w-full max-w-sm p-8">
             <div class="mb-6 flex items-center gap-2">
@@ -112,11 +123,6 @@
             </div>
         {/if}
 
-        <AliasManager
-            {api}
-            {aliasTemplate}
-            loadCache={loadAliasCache}
-            saveCache={saveAliasCache}
-        />
+        <AliasManager {api} {aliasTemplate} />
     </main>
 {/if}

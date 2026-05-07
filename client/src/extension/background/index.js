@@ -1,11 +1,12 @@
 import "webextension-polyfill";
-import { saveToken, getToken, getWorkerUrl } from "../lib/storage.js";
+import { saveToken, getToken, getWorkerUrl, loadAliasCache, saveAliasCache } from "../../lib/storage.js";
 import { isTokenValid } from "../../lib/auth.js";
 import { createApi } from "../../lib/api.js";
 
 browser.runtime.onMessage.addListener((msg) => {
   if (msg.type === "auth") return handleAuth(msg.workerUrl);
   if (msg.type === "getState") return handleGetState();
+  if (msg.type === "getCachedAliases") return handleGetCachedAliases();
   if (msg.type === "listAliases") return handleListAliases();
   if (msg.type === "createAlias") return handleCreateAlias(msg.alias);
 });
@@ -65,6 +66,12 @@ async function handleGetState() {
   return { configured: true, authenticated: isTokenValid(token) };
 }
 
+async function handleGetCachedAliases() {
+  const cached = await loadAliasCache();
+  if (!cached) return { ok: false };
+  return { ok: true, aliases: cached.aliases ?? [], destination: cached.destination ?? '' };
+}
+
 async function handleListAliases() {
   const workerUrl = await getWorkerUrl();
   const token = await getToken();
@@ -73,8 +80,12 @@ async function handleListAliases() {
   const api = createApi(workerUrl, () => token, null);
   try {
     const data = await api.listAliases();
-    return { ok: true, aliases: data?.aliases ?? [] };
+    await saveAliasCache(data);
+    return { ok: true, aliases: data?.aliases ?? [], destination: data?.destination ?? '' };
   } catch (e) {
+    // Fall back to cache on network error
+    const cached = await loadAliasCache();
+    if (cached) return { ok: true, aliases: cached.aliases ?? [], destination: cached.destination ?? '', fromCache: true };
     return { ok: false, error: e.message };
   }
 }
