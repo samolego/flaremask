@@ -1,5 +1,4 @@
-import { resolveTemplate, extractSiteName } from "../../lib/utils.js";
-import { DEFAULT_ALIAS_TEMPLATE } from "./storage.js";
+import { resolveTemplate, extractSiteName, DEFAULT_ALIAS_TEMPLATE } from "../../lib/utils.js";
 
 export async function hostSuggestion() {
   const res = await browser.storage.local.get('flaremask_alias_template');

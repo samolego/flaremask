@@ -2,6 +2,7 @@
     import { clearToken, consumeTokenFromHash, isTokenValid, getToken } from "./lib/auth.js";
     import { createApi } from "./lib/api.js";
     import { getAliasTemplate, saveAliasTemplate } from "./lib/settings.js";
+    import { loadAliasCache, saveAliasCache } from "./lib/aliasCache.js";
     import { LogOut, Settings } from "lucide-svelte";
     import AliasManager from "./components/AliasManager.svelte";
     import SettingsPanel from "./components/SettingsPanel.svelte";
@@ -90,7 +91,7 @@
             </div>
         {/if}
 
-        <AliasManager {api} {aliasTemplate} />
+        <AliasManager {api} {aliasTemplate} loadCache={loadAliasCache} saveCache={saveAliasCache} />
     </main>
 {/if}
 

@@ -1,4 +1,6 @@
-export const DEFAULT_ALIAS_TEMPLATE = "{adj}-{noun}-{rnd}";
+export const DEFAULT_ALIAS_TEMPLATE = __IS_EXTENSION__
+  ? `{site}.{adj}-{noun}-{rnd}`
+  : `{adj}-{noun}-{rnd}`;
 
 export const ADJECTIVES = [
   "swift",

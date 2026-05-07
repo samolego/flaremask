@@ -21,6 +21,7 @@ function extensionAssets() {
       await build({
         configFile: false,
         plugins: [svelte()],
+        define: { __IS_EXTENSION__: true },
         build: {
           outDir: resolve(__dirname, 'dist-ext'),
           emptyOutDir: false,
@@ -37,6 +38,7 @@ function extensionAssets() {
       await build({
         configFile: false,
         plugins: [svelte({ emitCss: false })],
+        define: { __IS_EXTENSION__: true },
         build: {
           outDir: resolve(__dirname, 'dist-ext'),
           emptyOutDir: false,
@@ -68,6 +70,7 @@ function extensionAssets() {
 
 export default defineConfig({
   plugins: [svelte(), tailwindcss(), ...(isExt ? [extensionAssets()] : [])],
+  define: { __IS_EXTENSION__: isExt },
   base: isExt ? './' : '/',
   server: {
     proxy: {

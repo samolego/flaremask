@@ -1,5 +1,4 @@
 import { DEFAULT_ALIAS_TEMPLATE } from './utils.js';
-export { DEFAULT_ALIAS_TEMPLATE };
 
 const ALIAS_TEMPLATE_KEY = 'flaremask_alias_template';
 

@@ -9,18 +9,27 @@
         Check,
         Trash2,
         LoaderCircle,
+        TriangleAlert,
     } from "lucide-svelte";
 
-    import Toggle from './Toggle.svelte';
+    import Toggle from "./Toggle.svelte";
 
-    let { api, compact = false, initialAlias = "", aliasTemplate = DEFAULT_ALIAS_TEMPLATE, siteName = "" } = $props();
+    let {
+        api,
+        compact = false,
+        initialAlias = "",
+        aliasTemplate = DEFAULT_ALIAS_TEMPLATE,
+        siteName = "",
+        loadCache = null,
+        saveCache = null,
+    } = $props();
 
     // Icon size varies between full-page (16) and compact extension popup (14)
     const sz = $derived(compact ? 14 : 16);
 
     let aliases = $state([]);
     let destination = $state("");
-    let loading = $state(false);
+    let loading = $state(true);
     let creating = $state(false);
     let togglingId = $state(null);
     let copiedId = $state(null);
@@ -30,13 +39,45 @@
 
     onMount(load);
 
+    /** Returns true if the two alias lists differ in membership or enabled state. */
+    function aliasesChanged(prev, next) {
+        if (prev.length !== next.length) return true;
+        const prevMap = new Map(prev.map((a) => [a.id, a.enabled]));
+        return next.some(
+            (a) => !prevMap.has(a.id) || prevMap.get(a.id) !== a.enabled,
+        );
+    }
+
     async function load() {
-        loading = true;
         error = null;
+
+        let cachedAliases = [];
+        let cachedDestination = "";
+
+        // Show cached data immediately (stale-while-revalidate)
+        if (loadCache) {
+            const cached = await loadCache();
+            if (cached) {
+                cachedAliases = cached.aliases ?? [];
+                cachedDestination = cached.destination ?? "";
+                aliases = cachedAliases;
+                destination = cachedDestination;
+                loading = false;
+            }
+        }
+
         try {
             const data = await api.listAliases();
-            aliases = data?.aliases ?? [];
-            destination = data?.destination ?? "";
+            const fresh = data?.aliases ?? [];
+            const freshDest = data?.destination ?? "";
+            if (
+                aliasesChanged(cachedAliases, fresh) ||
+                freshDest !== cachedDestination
+            ) {
+                aliases = fresh;
+                destination = freshDest;
+            }
+            if (saveCache) await saveCache(data);
         } catch (e) {
             if (!(e instanceof AuthError)) error = e.message;
         } finally {
@@ -53,7 +94,9 @@
             const created = await api.createAlias(alias);
             if (created) {
                 aliases = [created, ...aliases];
-                await navigator.clipboard.writeText(created.alias).catch(() => {});
+                await navigator.clipboard
+                    .writeText(created.alias)
+                    .catch(() => {});
             }
             newAlias = "";
         } catch (e) {
@@ -67,7 +110,9 @@
         togglingId = alias.id;
         error = null;
         try {
-            const updated = await api.updateAlias(alias.id, { enabled: !alias.enabled });
+            const updated = await api.updateAlias(alias.id, {
+                enabled: !alias.enabled,
+            });
             if (updated)
                 aliases = aliases.map((a) => (a.id === alias.id ? updated : a));
         } catch (e) {
@@ -91,7 +136,9 @@
     async function copyAlias(alias) {
         await navigator.clipboard.writeText(alias.alias);
         copiedId = alias.id;
-        setTimeout(() => { copiedId = null; }, 1500);
+        setTimeout(() => {
+            copiedId = null;
+        }, 1500);
     }
 </script>
 
@@ -101,13 +148,16 @@
             ? 'text-xs'
             : 'text-sm'}"
     >
-        <span class="mt-0.5">⚠</span><span>{error}</span>
+        <TriangleAlert size={sz} class="mt-0.5 shrink-0" /><span>{error}</span>
     </div>
 {/if}
 
 <!-- New alias -->
 <form
-    onsubmit={(e) => { e.preventDefault(); create(); }}
+    onsubmit={(e) => {
+        e.preventDefault();
+        create();
+    }}
     class="flex gap-2 {compact ? 'mb-4' : 'mb-6'}"
 >
     <input
@@ -141,29 +191,45 @@
 <!-- Alias list -->
 <div class="card">
     <div class="card-header">
-        <h2 class="{compact ? 'text-xs font-semibold text-gray-700' : 'section-title'}">
+        <h2
+            class={compact
+                ? "text-xs font-semibold text-gray-700"
+                : "section-title"}
+        >
             {compact ? "Aliases" : "Email aliases"}
         </h2>
         {#if destination}
             <span class="badge">
-                {#if compact}→ {destination}{:else}forwarding to <span class="font-medium text-gray-700">{destination}</span>{/if}
+                {#if compact}→ {destination}{:else}forwarding to <span
+                        class="font-medium text-gray-700">{destination}</span
+                    >{/if}
             </span>
         {/if}
     </div>
 
     {#if loading}
-        <div class="px-5 py-8 text-center {compact ? 'text-xs' : 'text-sm'} text-gray-400">
+        <div
+            class="px-5 py-8 text-center {compact
+                ? 'text-xs'
+                : 'text-sm'} text-gray-400"
+        >
             Loading…
         </div>
     {:else if aliases.length === 0}
-        <div class="px-5 py-8 text-center {compact ? 'text-xs' : 'text-sm'} text-gray-400">
+        <div
+            class="px-5 py-8 text-center {compact
+                ? 'text-xs'
+                : 'text-sm'} text-gray-400"
+        >
             No aliases yet.
         </div>
     {:else}
         <ul class="divide-y divide-gray-100">
             {#each aliases as alias (alias.id)}
                 <li
-                    class="flex items-center {compact ? 'gap-2 px-3 py-2' : 'gap-4 px-5 py-4'} {alias.is_root
+                    class="flex items-center {compact
+                        ? 'gap-2 px-3 py-2'
+                        : 'gap-4 px-5 py-4'} {alias.is_root
                         ? 'opacity-70'
                         : ''}"
                 >
@@ -171,7 +237,9 @@
                         onclick={() => copyAlias(alias)}
                         aria-label="Copy alias"
                         title="Copy to clipboard"
-                        class={copiedId === alias.id ? "text-green-500" : "btn-icon"}
+                        class={copiedId === alias.id
+                            ? "text-green-500"
+                            : "btn-icon"}
                     >
                         {#if copiedId === alias.id}
                             <Check size={sz} />
@@ -181,7 +249,9 @@
                     </button>
 
                     <span
-                        class="min-w-0 flex-1 truncate font-mono {compact ? 'text-xs' : 'text-sm'} {alias.enabled
+                        class="min-w-0 flex-1 truncate font-mono {compact
+                            ? 'text-xs'
+                            : 'text-sm'} {alias.enabled
                             ? 'text-gray-900'
                             : 'text-gray-400'}"
                     >
@@ -189,7 +259,9 @@
                     </span>
 
                     {#if alias.is_root}
-                        <span class="badge-brand">{compact ? "login" : "login alias"}</span>
+                        <span class="badge-brand"
+                            >{compact ? "login" : "login alias"}</span
+                        >
                     {:else}
                         <Toggle
                             checked={alias.enabled}

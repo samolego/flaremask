@@ -1,7 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { createApi } from "../../lib/api.js";
-    import { isTokenValid, resolveTemplate, extractSiteName } from "../../lib/utils.js";
+    import { isTokenValid, resolveTemplate, extractSiteName, DEFAULT_ALIAS_TEMPLATE } from "../../lib/utils.js";
     import {
         getToken,
         clearToken,
@@ -9,7 +9,8 @@
         saveWorkerUrl,
         getAliasTemplate,
         saveAliasTemplate,
-        DEFAULT_ALIAS_TEMPLATE,
+        loadAliasCache,
+        saveAliasCache,
     } from "../lib/storage.js";
     import { LoaderCircle, Settings } from "lucide-svelte";
     import AliasManager from "../../components/AliasManager.svelte";
@@ -211,7 +212,7 @@
                     </div>
                 </div>
             {/if}
-            <AliasManager {api} {aliasTemplate} {siteName} compact initialAlias={suggestedAlias} />
+            <AliasManager {api} {aliasTemplate} {siteName} compact initialAlias={suggestedAlias} loadCache={loadAliasCache} saveCache={saveAliasCache} />
         </div>
     </div>
 {/if}

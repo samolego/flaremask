@@ -1,11 +1,10 @@
 import { DEFAULT_ALIAS_TEMPLATE } from "../../lib/utils.js";
-export { DEFAULT_ALIAS_TEMPLATE_SITE as DEFAULT_ALIAS_TEMPLATE };
 
 const TOKEN_KEY = "flaremask_token";
 const WORKER_URL_KEY = "flaremask_worker_url";
 const USE_SITE_URL_KEY = "flaremask_use_site_url";
 const ALIAS_TEMPLATE_KEY = "flaremask_alias_template";
-const DEFAULT_ALIAS_TEMPLATE_SITE = `{site}.${DEFAULT_ALIAS_TEMPLATE}`;
+const ALIAS_CACHE_KEY = "flaremask_aliases_cache";
 
 export async function getToken() {
   const res = await browser.storage.local.get(TOKEN_KEY);
@@ -45,4 +44,13 @@ export async function getAliasTemplate() {
 
 export async function saveAliasTemplate(value) {
   await browser.storage.local.set({ [ALIAS_TEMPLATE_KEY]: value });
+}
+
+export async function loadAliasCache() {
+  const res = await browser.storage.local.get(ALIAS_CACHE_KEY);
+  return res[ALIAS_CACHE_KEY] ?? null;
+}
+
+export async function saveAliasCache(data) {
+  await browser.storage.local.set({ [ALIAS_CACHE_KEY]: data });
 }
