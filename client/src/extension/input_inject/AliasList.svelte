@@ -41,20 +41,20 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--fm-text, #374151);
+    color: var(--fm-text);
     box-sizing: border-box;
   }
   .item:hover {
-    background: var(--fm-hover-bg, #fff7ed);
-    color: var(--fm-brand, #f6821f);
+    background: var(--fm-hover-bg);
+    color: var(--fm-brand);
   }
   .item.root {
-    color: var(--fm-text-muted, #9ca3af);
+    color: var(--fm-text-muted);
     font-size: 11px;
   }
   .item.root:hover {
-    background: var(--fm-hover-bg, #fff7ed);
-    color: var(--fm-brand, #f6821f);
+    background: var(--fm-hover-bg);
+    color: var(--fm-brand);
   }
 
   .login-label {
@@ -62,7 +62,7 @@
   }
 
   .hint {
-    color: var(--fm-text-muted, #9ca3af);
+    color: var(--fm-text-muted);
     font-size: 12px;
     text-align: center;
     padding: 6px 0;

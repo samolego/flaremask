@@ -137,20 +137,28 @@
   .pop {
     --fm-brand: #f6821f;
     --fm-brand-dark: #e07318;
+    --fm-brand-ring: rgba(246, 130, 31, 0.2);
     --fm-text: #374151;
+    --fm-text-dark: #111827;
+    --fm-text-secondary: #6b7280;
     --fm-text-muted: #9ca3af;
+    --fm-bg: #fff;
+    --fm-border: #e5e7eb;
+    --fm-border-input: #d1d5db;
+    --fm-border-light: #f3f4f6;
     --fm-hover-bg: #fff7ed;
+    --fm-error: #ef4444;
 
     position: fixed;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    background: var(--fm-bg);
+    border: 1px solid var(--fm-border);
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.13);
     padding: 12px;
     width: 300px;
     font-size: 13px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #111827;
+    color: var(--fm-text-dark);
     z-index: 2147483647;
     box-sizing: border-box;
     line-height: 1.4;
@@ -172,11 +180,11 @@
 
   .msg {
     margin: 0;
-    color: #6b7280;
+    color: var(--fm-text-secondary);
     font-size: 12px;
     line-height: 1.6;
   }
-  .msg strong { color: #374151; }
+  .msg strong { color: var(--fm-text); }
 
   .row {
     display: flex;
@@ -186,24 +194,24 @@
   .fi {
     flex: 1;
     padding: 5px 8px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--fm-border-input);
     border-radius: 6px;
     font-size: 12px;
     font-family: monospace;
     outline: none;
-    color: #111827;
-    background: #fff;
+    color: var(--fm-text-dark);
+    background: var(--fm-bg);
     box-sizing: border-box;
   }
   .fi:focus {
-    border-color: #f6821f;
-    box-shadow: 0 0 0 2px rgba(246, 130, 31, 0.2);
+    border-color: var(--fm-brand);
+    box-shadow: 0 0 0 2px var(--fm-brand-ring);
   }
 
   .btn {
     padding: 5px 10px;
-    background: #f6821f;
-    color: #fff;
+    background: var(--fm-brand);
+    color: var(--fm-bg);
     border: none;
     border-radius: 6px;
     font-size: 12px;
@@ -212,23 +220,23 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  .btn:hover { background: #e07318; }
+  .btn:hover { background: var(--fm-brand-dark); }
   .btn:disabled { opacity: 0.5; cursor: default; }
 
   .err {
-    color: #ef4444;
+    color: var(--fm-error);
     font-size: 11px;
     margin-bottom: 6px;
   }
 
   hr {
     border: none;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--fm-border-light);
     margin: 8px 0;
   }
 
   .hint {
-    color: #9ca3af;
+    color: var(--fm-text-muted);
     font-size: 12px;
     text-align: center;
     padding: 6px 0;

@@ -1,4 +1,4 @@
-import { resolveTemplate, extractSiteName } from "../../lib/utils.js";
+import { resolveTemplate, extractSiteName } from "../../lib/templates.js";
 import { getAliasTemplate } from "../../lib/storage.js";
 
 export { sortAliases } from "../../lib/aliases.js";

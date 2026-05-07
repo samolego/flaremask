@@ -5,7 +5,7 @@
         resolveTemplate,
         extractSiteName,
         DEFAULT_ALIAS_TEMPLATE,
-    } from "../../lib/utils.js";
+    } from "../../lib/templates.js";
     import { isTokenValid } from "../../lib/auth.js";
     import {
         getToken,
@@ -78,7 +78,6 @@
         });
 
         try {
-            // currentWindow = the popup itself; use windowType:'normal' to get the real tab
             const [tab] = await browser.tabs.query({
                 active: true,
                 windowType: "normal",
