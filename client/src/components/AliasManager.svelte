@@ -34,7 +34,6 @@
     let togglingId = $state(null);
     let copiedId = $state(null);
     let error = $state(null);
-    // eslint-disable-next-line svelte/reactivity
     let newAlias = $state(untrack(() => initialAlias));
 
     onMount(load);

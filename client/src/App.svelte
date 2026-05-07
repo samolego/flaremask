@@ -1,5 +1,10 @@
 <script>
-    import { clearToken, consumeTokenFromHash, isTokenValid, getToken } from "./lib/auth.js";
+    import {
+        clearToken,
+        consumeTokenFromHash,
+        isTokenValid,
+        getToken,
+    } from "./lib/auth.js";
     import { createApi } from "./lib/api.js";
     import { getAliasTemplate, saveAliasTemplate } from "./lib/settings.js";
     import { loadAliasCache, saveAliasCache } from "./lib/aliasCache.js";
@@ -8,14 +13,17 @@
     import SettingsPanel from "./components/SettingsPanel.svelte";
 
     consumeTokenFromHash();
-    if (!isTokenValid()) clearToken();
+    let authenticated = $state(isTokenValid(getToken()));
 
-    let authenticated = $state(isTokenValid());
+    if (!authenticated) clearToken();
     let showSettings = $state(false);
     let aliasTemplate = $state(getAliasTemplate());
-    let editTemplate = $state('');
+    let editTemplate = $state("");
 
-    const api = createApi('', getToken, () => { clearToken(); authenticated = false; });
+    const api = createApi("", getToken, () => {
+        clearToken();
+        authenticated = false;
+    });
 
     function logout() {
         clearToken();
@@ -38,8 +46,14 @@
     <div class="flex min-h-screen items-center justify-center bg-gray-50">
         <div class="card w-full max-w-sm p-8">
             <div class="mb-6 flex items-center gap-2">
-                <img src="/icons/icon-192.png" class="h-6 w-6 rounded" alt="Flaremask" />
-                <span class="text-lg font-semibold text-gray-900">Flaremask</span>
+                <img
+                    src="/icons/icon-192.png"
+                    class="h-6 w-6 rounded"
+                    alt="Flaremask"
+                />
+                <span class="text-lg font-semibold text-gray-900"
+                    >Flaremask</span
+                >
             </div>
             <p class="mb-6 text-sm text-gray-500">
                 Sign in to manage your email aliases.
@@ -53,14 +67,21 @@
     </div>
 {:else}
     <nav class="border-b border-gray-200 bg-white">
-        <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <div
+            class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3"
+        >
             <div class="flex items-center gap-2">
-                <img src="/icons/icon-192.png" class="h-5 w-5 rounded" alt="Flaremask" />
+                <img
+                    src="/icons/icon-192.png"
+                    class="h-5 w-5 rounded"
+                    alt="Flaremask"
+                />
                 <span class="font-semibold text-gray-900">Flaremask</span>
             </div>
             <div class="flex items-center gap-1">
                 <button
-                    onclick={() => showSettings ? (showSettings = false) : openSettings()}
+                    onclick={() =>
+                        showSettings ? (showSettings = false) : openSettings()}
                     class="btn-icon"
                     title="Settings"
                     aria-label="Settings"
@@ -91,7 +112,11 @@
             </div>
         {/if}
 
-        <AliasManager {api} {aliasTemplate} loadCache={loadAliasCache} saveCache={saveAliasCache} />
+        <AliasManager
+            {api}
+            {aliasTemplate}
+            loadCache={loadAliasCache}
+            saveCache={saveAliasCache}
+        />
     </main>
 {/if}
-

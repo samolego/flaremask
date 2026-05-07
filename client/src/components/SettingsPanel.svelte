@@ -1,5 +1,5 @@
 <script>
-    import AliasTemplateEditor from './AliasTemplateEditor.svelte';
+    import AliasTemplateEditor from "./AliasTemplateEditor.svelte";
 
     /**
      * @type {{
@@ -11,8 +11,8 @@
      * }}
      */
     let {
-        aliasTemplate = $bindable(''),
-        workerUrl = $bindable(''),
+        aliasTemplate = $bindable(""),
+        workerUrl = $bindable(""),
         showSiteTag = false,
         showWorkerUrl = false,
         onSave,
@@ -23,13 +23,15 @@
     <p class="mb-1 text-sm font-medium text-gray-800">Alias template</p>
     <p class="mb-2 text-xs text-gray-500">
         Tags are replaced when generating a suggestion.
-        {#if showSiteTag}Use <code class="font-mono">{'{site}'}</code> to include the current site's name.{/if}
     </p>
     <AliasTemplateEditor bind:aliasTemplate {showSiteTag} />
 
     {#if showWorkerUrl}
         <div class="mt-5 border-t border-gray-100 pt-4">
-            <label for="worker-url" class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            <label
+                for="worker-url"
+                class="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500"
+            >
                 Worker URL
             </label>
             <input

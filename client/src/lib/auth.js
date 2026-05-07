@@ -1,6 +1,4 @@
-import { isTokenValid as _isTokenValid } from './utils.js';
-
-const TOKEN_KEY = 'flaremask_token';
+const TOKEN_KEY = "flaremask_token";
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -14,16 +12,26 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export function isTokenValid() {
-  return _isTokenValid(getToken());
-}
-
 /** Reads /#token=... set by the worker callback, stores it, clears the URL. */
 export function consumeTokenFromHash() {
   const params = new URLSearchParams(window.location.hash.slice(1));
-  const token = params.get('token');
+  const token = params.get("token");
   if (token) {
     saveToken(token);
-    history.replaceState(null, '', '/');
+    history.replaceState(null, "", "/");
   }
+}
+
+export function parseTokenPayload(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
+export function isTokenValid(token) {
+  if (!token) return false;
+  const payload = parseTokenPayload(token);
+  return payload ? payload.exp * 1000 > Date.now() : false;
 }

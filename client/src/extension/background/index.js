@@ -1,6 +1,6 @@
 import "webextension-polyfill";
 import { saveToken, getToken, getWorkerUrl } from "../lib/storage.js";
-import { isTokenValid } from "../../lib/utils.js";
+import { isTokenValid } from "../../lib/auth.js";
 import { createApi } from "../../lib/api.js";
 
 browser.runtime.onMessage.addListener((msg) => {

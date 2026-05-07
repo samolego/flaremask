@@ -48,12 +48,6 @@ export const NOUNS = [
   "vale",
 ];
 
-export function randomAlias() {
-  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-  return `${adj}-${noun}-${Math.floor(Math.random() * 90 + 10)}`;
-}
-
 /**
  * Resolve an alias template string.
  * Supported tags: {site}, {noun}, {adj}, {rnd}
@@ -116,18 +110,4 @@ export function extractSiteName(hostname, title = "") {
   // Second-to-top-level domain: "mysite" from "url.mysite.com"
   const parts = host.split(".");
   return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
-}
-
-export function parseTokenPayload(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
-
-export function isTokenValid(token) {
-  if (!token) return false;
-  const payload = parseTokenPayload(token);
-  return payload ? payload.exp * 1000 > Date.now() : false;
 }
