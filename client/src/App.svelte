@@ -1,19 +1,35 @@
 <script>
     import { clearToken, consumeTokenFromHash, isTokenValid, getToken } from "./lib/auth.js";
     import { createApi } from "./lib/api.js";
-    import { UserRound } from "lucide-svelte";
+    import { getAliasTemplate, saveAliasTemplate } from "./lib/settings.js";
+    import { LogOut, Settings } from "lucide-svelte";
     import AliasManager from "./components/AliasManager.svelte";
+    import SettingsPanel from "./components/SettingsPanel.svelte";
 
     consumeTokenFromHash();
     if (!isTokenValid()) clearToken();
 
     let authenticated = $state(isTokenValid());
+    let showSettings = $state(false);
+    let aliasTemplate = $state(getAliasTemplate());
+    let editTemplate = $state('');
 
     const api = createApi('', getToken, () => { clearToken(); authenticated = false; });
 
     function logout() {
         clearToken();
         authenticated = false;
+    }
+
+    function openSettings() {
+        editTemplate = aliasTemplate;
+        showSettings = true;
+    }
+
+    function saveSettings() {
+        aliasTemplate = editTemplate;
+        saveAliasTemplate(aliasTemplate);
+        showSettings = false;
     }
 </script>
 
@@ -41,16 +57,40 @@
                 <img src="/icons/icon-192.png" class="h-5 w-5 rounded" alt="Flaremask" />
                 <span class="font-semibold text-gray-900">Flaremask</span>
             </div>
-            <button
-                onclick={logout}
-                class="flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-800"
-            >
-                <UserRound size={16} />Sign out
-            </button>
+            <div class="flex items-center gap-1">
+                <button
+                    onclick={() => showSettings ? (showSettings = false) : openSettings()}
+                    class="btn-icon"
+                    title="Settings"
+                    aria-label="Settings"
+                >
+                    <Settings size={16} />
+                </button>
+                <button
+                    onclick={logout}
+                    class="btn-icon flex items-center gap-1 text-xs text-gray-400 hover:text-red-500"
+                    title="Sign out"
+                >
+                    <LogOut size={13} />Sign out
+                </button>
+            </div>
         </div>
     </nav>
 
     <main class="mx-auto max-w-3xl px-4 py-8">
-        <AliasManager {api} />
+        {#if showSettings}
+            <div class="card mb-6 p-5">
+                <h2 class="section-title mb-4">Settings</h2>
+                <SettingsPanel
+                    bind:aliasTemplate={editTemplate}
+                    showSiteTag={false}
+                    showWorkerUrl={false}
+                    onSave={saveSettings}
+                />
+            </div>
+        {/if}
+
+        <AliasManager {api} {aliasTemplate} />
     </main>
 {/if}
+

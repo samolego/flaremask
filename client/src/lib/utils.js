@@ -1,30 +1,131 @@
+export const DEFAULT_ALIAS_TEMPLATE = "{adj}-{noun}-{rnd}";
+
 export const ADJECTIVES = [
-    'swift', 'quiet', 'brave', 'calm', 'bold',
-    'keen', 'sage', 'pure', 'dark', 'pale',
+  "swift",
+  "quiet",
+  "brave",
+  "calm",
+  "bold",
+  "keen",
+  "sage",
+  "pure",
+  "dark",
+  "pale",
+  "wild",
+  "bright",
+  "crisp",
+  "noble",
+  "stark",
+  "dusty",
+  "misty",
+  "silky",
+  "vivid",
+  "rusty",
 ];
 
 export const NOUNS = [
-    'fox', 'river', 'cloud', 'stone', 'flame',
-    'ridge', 'dusk', 'pine', 'wave', 'frost',
+  "fox",
+  "river",
+  "cloud",
+  "stone",
+  "flame",
+  "ridge",
+  "dusk",
+  "pine",
+  "wave",
+  "frost",
+  "hawk",
+  "creek",
+  "bloom",
+  "cliff",
+  "ember",
+  "gale",
+  "moss",
+  "reed",
+  "thorn",
+  "vale",
 ];
 
 export function randomAlias() {
-    const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
-    const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
-    return `${adj}-${noun}-${Math.floor(Math.random() * 90 + 10)}`;
+  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+  return `${adj}-${noun}-${Math.floor(Math.random() * 90 + 10)}`;
 }
 
-/** Decode a JWT payload without verification. Returns null on failure. */
-export function parseTokenPayload(token) {
-    try {
-        return JSON.parse(atob(token.split('.')[1]));
-    } catch {
-        return null;
+/**
+ * Resolve an alias template string.
+ * Supported tags: {site}, {noun}, {adj}, {rnd}
+ * @param {string} template
+ * @param {string} [siteName]
+ * @returns {string}
+ */
+export function resolveTemplate(template, siteName = "") {
+  const adj = () => ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+  const noun = () => NOUNS[Math.floor(Math.random() * NOUNS.length)];
+  const rnd = () => String(Math.floor(Math.random() * 9000 + 1000));
+  const site =
+    siteName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/^-+|-+$/g, "") || "";
+
+  return template
+    .replace(/\{site\}/g, site)
+    .replace(/\{adj\}/g, adj)
+    .replace(/\{noun\}/g, noun)
+    .replace(/\{rnd\}/g, rnd)
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-_.]+|[-_.]+$/g, "");
+}
+
+/**
+ * Extract a human-readable site name from a hostname and optional page title.
+ *
+ * Algorithm:
+ *  1. Split the page title into words; return the longest word that appears
+ *     verbatim inside the hostname (case-insensitive). Ignores short words (<3 chars).
+ *  2. Fallback: second-to-top-level domain segment, e.g. "mysite" from
+ *     "url.mysite.com".
+ *
+ * @param {string} hostname
+ * @param {string} [title]
+ * @returns {string}
+ */
+export function extractSiteName(hostname, title = "") {
+  const host = hostname.replace(/^www\./, "").toLowerCase();
+
+  if (title) {
+    const words = title
+      .toLowerCase()
+      .split(/[\s\-_.,|:()/\\]+/)
+      .filter((w) => w.length >= 3);
+
+    let best = "";
+    for (const word of words) {
+      if (host.includes(word) && word.length > best.length) {
+        best = word;
+      }
     }
+    if (best) return best;
+  }
+
+  // Second-to-top-level domain: "mysite" from "url.mysite.com"
+  const parts = host.split(".");
+  return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+}
+
+export function parseTokenPayload(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
 }
 
 export function isTokenValid(token) {
-    if (!token) return false;
-    const payload = parseTokenPayload(token);
-    return payload ? payload.exp * 1000 > Date.now() : false;
+  if (!token) return false;
+  const payload = parseTokenPayload(token);
+  return payload ? payload.exp * 1000 > Date.now() : false;
 }

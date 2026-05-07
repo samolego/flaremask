@@ -1,7 +1,7 @@
 <script>
     import { onMount, untrack } from "svelte";
     import { AuthError } from "../lib/api.js";
-    import { randomAlias } from "../lib/utils.js";
+    import { resolveTemplate, DEFAULT_ALIAS_TEMPLATE } from "../lib/utils.js";
     import {
         Plus,
         Dices,
@@ -11,7 +11,9 @@
         LoaderCircle,
     } from "lucide-svelte";
 
-    let { api, compact = false, initialAlias = "" } = $props();
+    import Toggle from './Toggle.svelte';
+
+    let { api, compact = false, initialAlias = "", aliasTemplate = DEFAULT_ALIAS_TEMPLATE, siteName = "" } = $props();
 
     // Icon size varies between full-page (16) and compact extension popup (14)
     const sz = $derived(compact ? 14 : 16);
@@ -119,7 +121,7 @@
     />
     <button
         type="button"
-        onclick={() => (newAlias = randomAlias())}
+        onclick={() => (newAlias = resolveTemplate(aliasTemplate, siteName))}
         title="Generate random alias"
         class="btn-outline"
     >
@@ -189,26 +191,11 @@
                     {#if alias.is_root}
                         <span class="badge-brand">{compact ? "login" : "login alias"}</span>
                     {:else}
-                        <button
-                            role="switch"
-                            aria-checked={alias.enabled}
-                            onclick={() => toggle(alias)}
+                        <Toggle
+                            checked={alias.enabled}
                             disabled={togglingId === alias.id}
-                            class="toggle {alias.enabled ? 'bg-brand' : 'bg-gray-200'}"
-                        >
-                            {#if togglingId === alias.id}
-                                <LoaderCircle
-                                    size={compact ? 12 : 14}
-                                    class="absolute inset-0 m-auto animate-spin text-white"
-                                />
-                            {:else}
-                                <span
-                                    class="toggle-thumb {alias.enabled
-                                        ? 'translate-x-4'
-                                        : 'translate-x-0.5'}"
-                                ></span>
-                            {/if}
-                        </button>
+                            onchange={() => toggle(alias)}
+                        />
 
                         <button
                             onclick={() => remove(alias)}
