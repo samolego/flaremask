@@ -16,7 +16,7 @@
         saveAliasTemplate,
     } from "../../lib/storage.js";
     import { LoaderCircle, Settings } from "lucide-svelte";
-    import AliasManager from "../../components/AliasManager.svelte";
+    import AliasManager from "../../components/alias/AliasManager.svelte";
     import OnboardingView from "./OnboardingView.svelte";
     import SettingsView from "./SettingsView.svelte";
 

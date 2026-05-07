@@ -9,8 +9,8 @@
     } from "./lib/storage.js";
     import { createApi } from "./lib/api.js";
     import { LogOut, Settings } from "lucide-svelte";
-    import AliasManager from "./components/AliasManager.svelte";
-    import SettingsPanel from "./components/SettingsPanel.svelte";
+    import AliasManager from "./components/alias/AliasManager.svelte";
+    import SettingsPanel from "./components/settings/SettingsPanel.svelte";
 
     consumeTokenFromHash();
     let authenticated = $state(false);

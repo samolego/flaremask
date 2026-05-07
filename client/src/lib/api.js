@@ -1,12 +1,14 @@
 export class AuthError extends Error {}
 
+const EMAILS_ENDPOINT = "emails";
+
 export function createApi(baseUrl, getToken, onAuthError) {
   async function request(path, options = {}) {
     const token = await getToken();
-    const res = await fetch(baseUrl + '/api/v1' + path, {
+    const res = await fetch(baseUrl + "/api/v1" + path, {
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
       ...options,
@@ -15,15 +17,24 @@ export function createApi(baseUrl, getToken, onAuthError) {
       if (onAuthError) onAuthError();
       throw new AuthError();
     }
-    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
     if (res.status === 204) return null;
     return res.json();
   }
 
   return {
-    listAliases: () => request('/emails'),
-    createAlias: (alias) => request('/emails', { method: 'POST', body: JSON.stringify({ alias }) }),
-    updateAlias: (id, patch) => request(`/emails/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
-    deleteAlias: (id) => request(`/emails/${id}`, { method: 'DELETE' }),
+    listAliases: () => request(`/${EMAILS_ENDPOINT}`),
+    createAlias: (alias) =>
+      request(`/${EMAILS_ENDPOINT}`, {
+        method: "POST",
+        body: JSON.stringify({ alias }),
+      }),
+    updateAlias: (id, patch) =>
+      request(`/${EMAILS_ENDPOINT}/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      }),
+    deleteAlias: (id) =>
+      request(`/${EMAILS_ENDPOINT}/${id}`, { method: "DELETE" }),
   };
 }

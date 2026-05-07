@@ -1,5 +1,5 @@
 <script>
-    import { DEFAULT_ALIAS_TEMPLATE } from "../lib/templates.js";
+    import { DEFAULT_ALIAS_TEMPLATE } from "../../lib/templates.js";
 
     /** @type {{ aliasTemplate: string, showSiteTag?: boolean }} */
     let { aliasTemplate = $bindable(""), showSiteTag = true } = $props();

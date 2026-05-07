@@ -1,11 +1,11 @@
 <script>
     import { onMount, untrack } from "svelte";
-    import { AuthError } from "../lib/api.js";
-    import { getAliases, sortAliases } from "../lib/aliases.js";
+    import { AuthError } from "../../lib/api.js";
+    import { getAliases, sortAliases } from "../../lib/aliases.js";
     import {
         resolveTemplate,
         DEFAULT_ALIAS_TEMPLATE,
-    } from "../lib/templates.js";
+    } from "../../lib/templates.js";
     import {
         Plus,
         Dices,
@@ -16,7 +16,7 @@
         TriangleAlert,
     } from "lucide-svelte";
 
-    import Toggle from "./Toggle.svelte";
+    import Toggle from "../Toggle.svelte";
 
     let {
         api,

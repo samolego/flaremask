@@ -1,5 +1,5 @@
 <script>
-    import AliasTemplateEditor from "./AliasTemplateEditor.svelte";
+    import AliasTemplateEditor from "../alias/AliasTemplateEditor.svelte";
 
     /**
      * @type {{

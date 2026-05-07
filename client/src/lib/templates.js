@@ -2,51 +2,8 @@ export const DEFAULT_ALIAS_TEMPLATE = __IS_EXTENSION__
   ? `{site}.{adj}-{noun}-{rnd}`
   : `{adj}-{noun}-{rnd}`;
 
-export const ADJECTIVES = [
-  "swift",
-  "quiet",
-  "brave",
-  "calm",
-  "bold",
-  "keen",
-  "sage",
-  "pure",
-  "dark",
-  "pale",
-  "wild",
-  "bright",
-  "crisp",
-  "noble",
-  "stark",
-  "dusty",
-  "misty",
-  "silky",
-  "vivid",
-  "rusty",
-];
-
-export const NOUNS = [
-  "fox",
-  "river",
-  "cloud",
-  "stone",
-  "flame",
-  "ridge",
-  "dusk",
-  "pine",
-  "wave",
-  "frost",
-  "hawk",
-  "creek",
-  "bloom",
-  "cliff",
-  "ember",
-  "gale",
-  "moss",
-  "reed",
-  "thorn",
-  "vale",
-];
+export { default as ADJECTIVES } from "./data/adjectives.json";
+export { default as NOUNS } from "./data/nouns.json";
 
 /**
  * Resolve an alias template string.
