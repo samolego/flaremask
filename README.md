@@ -8,6 +8,10 @@ A self-hosted email alias manager built as a Cloudflare Worker. It provides a si
 (See [setup](./setup.md) for detailed instructions).
 
 
+<img width="676" height="449" alt="image" src="https://github.com/user-attachments/assets/7574b66c-1ddd-4520-9ffd-d8456481ef28" />
+
+
+
 > Note: I like to be transparent about AI usage. This project was designed and developed with the help of GitHub Copilot (Sonnet 4.6).
 
 ## Features
