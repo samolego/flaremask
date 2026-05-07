@@ -5,13 +5,15 @@ A self-hosted email alias manager built as a Cloudflare Worker. It provides a si
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samolego/flaremask/tree/master)
 
 
-(See [setup](./setup.md) for detailed instructions)
+(See [setup](./setup.md) for detailed instructions).
+
+
+> Note: I like to be transparent about AI usage. This project was designed and developed with the help of GitHub Copilot (Sonnet 4.6).
 
 ## Features
 
 - **OIDC Authentication**: Integration with OIDC provider for secure access.
 - **Ownership Enforcement**: Users can only manage aliases that forward to their authenticated email address.
-- **Root Alias Protection**: Prevents accidental deletion of the primary alias linking your login to your inbox.
 
 ## Prerequisites
 
