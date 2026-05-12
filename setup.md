@@ -87,14 +87,11 @@ button above. Cloudflare will prompt for the public variables from
 
 Due to Cloudflare not including cargo in build env, you'll need to set your `build` command to this:
 ```bash
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-. "$HOME/.cargo/env"
-cargo install cargo-generate
+curl https://sh.rustup.rs -sSf | sh -s -- -y && . "$HOME/.cargo/env" && cargo install cargo-generate
 ```
 and the deploy command to
 ```bash
-. "$HOME/.cargo/env"
-npx wrangler deploy
+. "$HOME/.cargo/env" && npx wrangler deploy
 ```
 
 After deployment finishes, copy the resulting Worker URL into your OIDC
