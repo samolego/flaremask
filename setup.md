@@ -75,7 +75,34 @@ Dashboard → My Profile → **API Tokens → Create Token**:
 
 ---
 
-## 3. Configure the Worker
+## 4. Deploy
+
+### Deploy to Cloudflare button
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/samolego/flaremask/tree/master)
+
+If you want Cloudflare to fork and deploy the repository for you, use the
+button above. Cloudflare will prompt for the public variables from
+`wrangler.toml` and the secrets from `.dev.vars.example`.
+
+Due to Cloudflare not including cargo in build env, you'll need to set your `build` command to this:
+```bash
+curl https://sh.rustup.rs -sSf | sh -s -- -y
+. "$HOME/.cargo/env"
+cargo install cargo-generate
+```
+and the deploy command to
+```bash
+. "$HOME/.cargo/env"
+npx wrangler deploy
+```
+
+After deployment finishes, copy the resulting Worker URL into your OIDC
+provider's allowed redirect URIs.
+
+### Manual Wrangler deploy
+
+#### Setup
 
 Edit `wrangler.toml` — fill in the public variables:
 
@@ -98,24 +125,7 @@ wrangler secret put CLOUDFLARE_API_TOKEN         # API token from Step 2
 wrangler secret put JWT_SECRET           # any random 32+ char string, e.g.: openssl rand -hex 32
 ```
 
----
-
-## 4. Deploy
-
-### Deploy to Cloudflare button
-
-If you want Cloudflare to fork and deploy the repository for you, use the
-button in the README. Cloudflare will prompt for the public variables from
-`wrangler.toml` and the secrets from `.dev.vars.example`.
-
-If the flow opens the forked repository's **Actions** tab, enable workflows and
-continue. The repository includes a manual `workflow_dispatch` trigger for that
-deploy flow.
-
-After deployment finishes, copy the resulting Worker URL into your OIDC
-provider's allowed redirect URIs.
-
-### Manual Wrangler deploy
+#### Deploy
 
 ```bash
 wrangler deploy
@@ -127,7 +137,7 @@ To use a custom domain instead, add it under **Workers → your worker → Custo
 
 ---
 
-## 5. Verify
+## 4. Verify
 
 | URL | Expected result |
 |-----|----------------|

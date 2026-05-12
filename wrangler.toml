@@ -15,5 +15,8 @@ OIDC_ISSUER_URL = "https://your-oidc-url"
 OIDC_CLIENT_ID = "flaremask"
 OIDC_REDIRECT_URI = "http://localhost:8787/auth/callback"
 CF_ZONE_ID = "your-cf-zone-id"
-# CF_EMAIL_DOMAIN = "yourdomain.com"  # optional: skips a zone API call on each alias creation
 TOKEN_EXPIRY = "3600"
+
+# optional: skips a zone API call on each alias creation
+# and makes the token not need the zone:read
+CF_EMAIL_DOMAIN = "yourdomain.com"
