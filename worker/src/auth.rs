@@ -118,12 +118,12 @@ async fn login_impl(state: AppState, return_to: Option<String>) -> Response {
     };
 
     let mut verifier_bytes = [0u8; 32];
-    getrandom::getrandom(&mut verifier_bytes).expect("rng failed");
+    getrandom::fill(&mut verifier_bytes).expect("rng failed");
     let code_verifier = URL_SAFE_NO_PAD.encode(verifier_bytes);
     let code_challenge = URL_SAFE_NO_PAD.encode(Sha256::digest(code_verifier.as_bytes()));
 
     let mut state_bytes = [0u8; 16];
-    getrandom::getrandom(&mut state_bytes).expect("rng failed");
+    getrandom::fill(&mut state_bytes).expect("rng failed");
     let oauth_state = URL_SAFE_NO_PAD.encode(state_bytes);
 
     let auth_url = format!(
