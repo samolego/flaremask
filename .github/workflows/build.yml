@@ -5,9 +5,36 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
-  build:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: client
+
+      - name: Build extension
+        run: npm run build:ext
+        working-directory: client
+
+  cloudflare-worker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -17,21 +44,9 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            client/package-lock.json
+      - name: Install worker-build
+        run: cargo install --locked worker-build --version ^0.8
 
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install client dependencies
-        run: npm install
-        working-directory: client
-
-      - name: Build
-        run: npm run build
+      - name: Build Cloudflare worker
+        run: worker-build --release
+        working-directory: worker

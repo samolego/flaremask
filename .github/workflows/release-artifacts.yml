@@ -1,0 +1,138 @@
+name: Release artifacts
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+
+jobs:
+  cloudflare-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: client
+
+      - name: Install worker-build
+        run: cargo install --locked worker-build --version ^0.8
+
+      - name: Build Cloudflare worker
+        run: worker-build --release
+        working-directory: worker
+
+      - name: Package Cloudflare bundle
+        run: |
+          tar -czf "flaremask-cloudflare-${RELEASE_TAG}.tar.gz" \
+            wrangler.toml \
+            client/dist \
+            worker/build
+
+      - name: Upload Cloudflare bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaremask-cloudflare
+          path: flaremask-cloudflare-${{ env.RELEASE_TAG }}.tar.gz
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: client
+
+      - name: Package frontend
+        run: tar -C client -czf "flaremask-frontend-${RELEASE_TAG}.tar.gz" dist
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaremask-frontend
+          path: flaremask-frontend-${{ env.RELEASE_TAG }}.tar.gz
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Build extension
+        run: npm run build:ext
+        working-directory: client
+
+      - name: Package extension
+        run: |
+          cd client/dist-ext
+          zip -r "../../flaremask-extension-${RELEASE_TAG}.zip" .
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaremask-extension
+          path: flaremask-extension-${{ env.RELEASE_TAG }}.zip
+
+  publish-release-assets:
+    if: github.event_name == 'release'
+    needs:
+      - cloudflare-bundle
+      - frontend
+      - extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/**/*.tar.gz
+            release-assets/**/*.zip
