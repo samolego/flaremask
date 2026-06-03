@@ -30,12 +30,14 @@
     let authenticated = $state(false);
     let signingIn = $state(false);
     let error = $state(null);
+    let pendingMobileAuth = $state(false);
     let suggestedAlias = $state("");
     let siteName = $state("");
     let permissionGranted = $state(/** @type {boolean|null} */ (null));
 
     let api = $state(null);
     let loading = $state(true);
+    let compact = $state(true);
 
     /** Ensure the URL has a https:// prefix. */
     function normalizeUrl(raw) {
@@ -46,6 +48,7 @@
     }
 
     onMount(async () => {
+        compact = !window.matchMedia("(pointer: coarse)").matches;
         workerUrl = (await getWorkerUrl()) ?? "";
         aliasTemplate = await getAliasTemplate();
 
@@ -132,7 +135,7 @@
                 type: "auth",
                 workerUrl,
             });
-            if (res?.ok) {
+            if (res?.ok === true) {
                 const token = await getToken();
                 authenticated = isTokenValid(token);
                 if (authenticated) {
@@ -149,6 +152,8 @@
                 } else {
                     error = "Sign-in failed";
                 }
+            } else if (res?.ok === "pending") {
+                pendingMobileAuth = true;
             } else {
                 error = res?.error ?? "Sign-in failed";
             }
@@ -197,9 +202,17 @@
             />
             <span class="font-semibold text-gray-900">Flaremask</span>
         </div>
-        <p class="mb-4 text-sm text-gray-500">
-            Sign in to manage your email aliases.
-        </p>
+        {#if pendingMobileAuth}
+            <p
+                class="mb-4 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700"
+            >
+                Complete sign-in in the opened tab, then reopen this window.
+            </p>
+        {:else}
+            <p class="mb-4 text-sm text-gray-500">
+                Sign in to manage your email aliases.
+            </p>
+        {/if}
         {#if error}
             <p
                 class="mb-3 rounded border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
@@ -207,14 +220,19 @@
                 {error}
             </p>
         {/if}
-        <button
-            onclick={signIn}
-            disabled={signingIn}
-            class="btn-primary justify-center"
-        >
-            {#if signingIn}<LoaderCircle size={16} class="animate-spin" />{/if}
-            {signingIn ? "Signing in…" : "Sign in"}
-        </button>
+        {#if !pendingMobileAuth}
+            <button
+                onclick={signIn}
+                disabled={signingIn}
+                class="btn-primary justify-center"
+            >
+                {#if signingIn}<LoaderCircle
+                        size={16}
+                        class="animate-spin"
+                    />{/if}
+                {signingIn ? "Signing in…" : "Sign in"}
+            </button>
+        {/if}
         <button
             onclick={() => {
                 screen = "settings";
@@ -226,7 +244,7 @@
         </button>
     </div>
 {:else}
-    <div class="w-90">
+    <div class="w-full">
         <nav
             class="flex items-center justify-between border-b border-gray-200 px-4 py-2"
         >
@@ -275,7 +293,7 @@
                 {api}
                 {aliasTemplate}
                 {siteName}
-                compact
+                {compact}
                 initialAlias={suggestedAlias}
             />
         </div>

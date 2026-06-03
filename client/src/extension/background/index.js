@@ -43,20 +43,39 @@ async function ensureContentScript() {
 }
 
 async function handleAuth(workerUrl) {
-  const redirectUrl = browser.identity.getRedirectURL();
-  const authUrl = `${workerUrl}/auth/login?return_to=${encodeURIComponent(redirectUrl)}`;
-  try {
-    const resultUrl = await browser.identity.launchWebAuthFlow({
-      url: authUrl,
-      interactive: true,
-    });
-    const hash = new URL(resultUrl).hash.slice(1);
-    const token = new URLSearchParams(hash).get("token");
-    if (token) await saveToken(token);
-    return { ok: !!token };
-  } catch (e) {
-    return { ok: false, error: e.message };
+  if (browser.identity?.launchWebAuthFlow) {
+    const redirectUrl = browser.identity.getRedirectURL();
+    const authUrl = `${workerUrl}/auth/login?return_to=${encodeURIComponent(redirectUrl)}`;
+    try {
+      const resultUrl = await browser.identity.launchWebAuthFlow({
+        url: authUrl,
+        interactive: true,
+      });
+      const hash = new URL(resultUrl).hash.slice(1);
+      const token = new URLSearchParams(hash).get("token");
+      if (token) await saveToken(token);
+      return { ok: !!token };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
+
+  // Mobile fallback: open a tab, watch for the token landing back on workerUrl
+  const authUrl = `${workerUrl}/auth/login?return_to=${encodeURIComponent(workerUrl)}`;
+  const tab = await browser.tabs.create({ url: authUrl });
+
+  browser.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
+    if (tabId !== tab.id) return;
+    const url = changeInfo.url ?? "";
+    if (!url.startsWith(workerUrl)) return;
+    const hash = new URL(url).hash.slice(1);
+    const token = new URLSearchParams(hash).get("token");
+    if (!token) return;
+    browser.tabs.onUpdated.removeListener(listener);
+    saveToken(token).then(() => browser.tabs.remove(tabId).catch(() => {}));
+  });
+
+  return { ok: "pending" };
 }
 
 async function handleGetState() {

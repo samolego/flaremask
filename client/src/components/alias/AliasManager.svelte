@@ -201,7 +201,7 @@
                 No aliases yet.
             </div>
         {:else}
-            <ul class="divide-y divide-gray-100">
+            <ul class="divide-y divide-gray-100 {compact ? 'max-h-52 overflow-y-auto' : ''}">
                 {#each aliases as alias (alias.id)}
                     <li
                         class="flex items-center {compact
