@@ -13,6 +13,7 @@
         Clipboard,
         Check,
         Trash2,
+        TriangleAlert,
     } from "lucide-svelte";
     import Toggle from "../Toggle.svelte";
     import EmailVerification from "./EmailVerification.svelte";

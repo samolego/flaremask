@@ -190,6 +190,13 @@ async fn create_impl(
                 )
                     .into_response();
             }
+            if e.contains("Duplicated") {
+                return (
+                    StatusCode::CONFLICT,
+                    "This alias already exists.",
+                )
+                    .into_response();
+            }
             StatusCode::BAD_GATEWAY.into_response()
         }
     }
