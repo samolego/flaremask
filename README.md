@@ -12,6 +12,8 @@ A self-hosted email alias manager built as a Cloudflare Worker. It provides a si
 
 
 
+---
+
 > Note: I like to be transparent about AI usage. This project was designed and developed with the help of GitHub Copilot (Sonnet 4.6).
 
 ## Features
@@ -22,7 +24,9 @@ A self-hosted email alias manager built as a Cloudflare Worker. It provides a si
 ## Prerequisites
 
 1.  A domain on Cloudflare with **Email Routing** enabled.
-2.  A Cloudflare **API Token** with `Email Routing: Edit` permissions.
+2.  A Cloudflare **API Token** with:
+    - `Email Routing: Edit` at the **Zone** level (required for managing rules)
+    - `Email Routing: Edit` at the **Account** level (required to automatically send verification emails to new destination addresses)
 3.  An **OIDC Provider** (like Authelia, Kanidm, or Authentik).
 
 ## Deploy to Cloudflare

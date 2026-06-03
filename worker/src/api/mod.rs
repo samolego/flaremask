@@ -16,6 +16,7 @@ use cloudflare::{resolve_ownership, EmailRule};
 #[derive(Serialize)]
 struct ListResponse {
     destination: String,
+    verified: bool,
     aliases: Vec<EmailRule>,
 }
 
@@ -23,6 +24,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/emails", get(list).post(create))
         .route("/emails/{id}", patch(update).delete(remove))
+        .route("/emails/verify", axum::routing::post(verify))
 }
 
 pub async fn list(AuthUser(email): AuthUser, State(state): State<AppState>) -> impl IntoResponse {
@@ -54,6 +56,13 @@ pub async fn remove(
     send_wrapper::SendWrapper::new(remove_impl(email, state, id)).await
 }
 
+pub async fn verify(
+    AuthUser(email): AuthUser,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    send_wrapper::SendWrapper::new(verify_impl(email, state)).await
+}
+
 async fn list_impl(oidc_email: String, state: AppState) -> impl IntoResponse {
     let rules = match cloudflare::list_rules(&state.cf_api_token, &state.cf_zone_id).await {
         Ok(r) => r,
@@ -79,10 +88,39 @@ async fn list_impl(oidc_email: String, state: AppState) -> impl IntoResponse {
         })
         .collect();
 
+    // If aliases exist, the email is already verified (rules couldn't have been created otherwise).
+    // Only check with CF when there are no aliases yet.
+    let verified = if !aliases.is_empty() {
+        true
+    } else {
+        match resolve_account_id(&state).await {
+            Ok(account_id) => {
+                match cloudflare::get_destination_verified(
+                    &state.cf_api_token,
+                    &account_id,
+                    &real_email,
+                )
+                .await
+                {
+                    Ok(v) => v,
+                    Err(e) => {
+                        worker::console_error!("get_destination_verified error: {e}");
+                        true // don't block listing on check failure
+                    }
+                }
+            }
+            Err(e) => {
+                worker::console_error!("resolve_account_id error: {e}");
+                true
+            }
+        }
+    };
+
     (
         StatusCode::OK,
         Json(ListResponse {
             destination: real_email,
+            verified,
             aliases,
         }),
     )
@@ -144,6 +182,14 @@ async fn create_impl(
         },
         Err(e) => {
             worker::console_error!("create_rule error: {e}");
+            if e.contains("not verified") {
+                return (
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                    "Your email is not yet verified with Cloudflare Email Routing. \
+                     Please send a verification email first.",
+                )
+                    .into_response();
+            }
             StatusCode::BAD_GATEWAY.into_response()
         }
     }
@@ -234,6 +280,51 @@ async fn remove_impl(oidc_email: String, state: AppState, id: String) -> impl In
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => {
             worker::console_error!("delete_rule error: {e}");
+            StatusCode::BAD_GATEWAY.into_response()
+        }
+    }
+}
+
+async fn resolve_account_id(state: &AppState) -> Result<String, String> {
+    if let Some(id) = &state.cf_account_id {
+        return Ok(id.clone());
+    }
+    cloudflare::get_account_id(&state.cf_api_token, &state.cf_zone_id).await
+}
+
+async fn verify_impl(oidc_email: String, state: AppState) -> impl IntoResponse {
+    let rules = match cloudflare::list_rules(&state.cf_api_token, &state.cf_zone_id).await {
+        Ok(r) => r,
+        Err(e) => {
+            worker::console_error!("list_rules error: {e}");
+            return StatusCode::BAD_GATEWAY.into_response();
+        }
+    };
+    let (real_email, _) = resolve_ownership(&rules, &oidc_email);
+    let real_email = real_email.to_string();
+
+    let account_id = match resolve_account_id(&state).await {
+        Ok(id) => id,
+        Err(e) => {
+            worker::console_error!("resolve_account_id error: {e}");
+            return StatusCode::BAD_GATEWAY.into_response();
+        }
+    };
+
+    match cloudflare::create_destination_address(&state.cf_api_token, &account_id, &real_email)
+        .await
+    {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) if e.contains("sent too recently") => (
+            StatusCode::TOO_MANY_REQUESTS,
+            "Verification email was already sent recently. Please check your inbox.",
+        )
+            .into_response(),
+        Err(e) => {
+            worker::console_error!(
+                "create_destination_address error: {e} \
+                 (ensure your API token has account-level 'Email Routing: Edit' permission)"
+            );
             StatusCode::BAD_GATEWAY.into_response()
         }
     }

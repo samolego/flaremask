@@ -27,20 +27,21 @@ export async function getAliases(api, { onUpdate, onError } = {}) {
   if (cached) {
     cachedAliases = cached.aliases ?? [];
     cachedDestination = cached.destination ?? "";
-    onUpdate?.(cachedAliases, cachedDestination, { fromCache: true });
+    onUpdate?.(cachedAliases, cachedDestination, { fromCache: true, verified: cached.verified ?? true });
   }
 
   try {
     const data = await api.listAliases();
     const fresh = data?.aliases ?? [];
     const freshDest = data?.destination ?? "";
+    const freshVerified = data?.verified ?? true;
 
     if (
       !cached ||
       aliasesChanged(cachedAliases, fresh) ||
       freshDest !== cachedDestination
     ) {
-      onUpdate?.(fresh, freshDest, { fromCache: false });
+      onUpdate?.(fresh, freshDest, { fromCache: false, verified: freshVerified });
     }
 
     await saveAliasCache(data);

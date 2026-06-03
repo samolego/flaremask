@@ -1,4 +1,5 @@
 export class AuthError extends Error {}
+export class RateLimitError extends Error {}
 
 const EMAILS_ENDPOINT = "emails";
 
@@ -17,6 +18,7 @@ export function createApi(baseUrl, getToken, onAuthError) {
       if (onAuthError) onAuthError();
       throw new AuthError();
     }
+    if (res.status === 429) throw new RateLimitError((await res.text()) || "Too many requests");
     if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
     if (res.status === 204) return null;
     return res.json();
@@ -36,5 +38,7 @@ export function createApi(baseUrl, getToken, onAuthError) {
       }),
     deleteAlias: (id) =>
       request(`/${EMAILS_ENDPOINT}/${id}`, { method: "DELETE" }),
+    sendVerificationEmail: () =>
+      request(`/${EMAILS_ENDPOINT}/verify`, { method: "POST" }),
   };
 }

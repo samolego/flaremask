@@ -138,12 +138,18 @@ fn cf_headers(token: &str) -> Result<Headers, String> {
     Ok(headers)
 }
 
-pub async fn get_zone_domain(token: &str, zone_id: &str) -> Result<String, String> {
-    #[derive(Deserialize)]
-    struct Zone {
-        name: String,
-    }
+#[derive(Deserialize)]
+struct ZoneAccount {
+    id: String,
+}
 
+#[derive(Deserialize)]
+struct ZoneInfo {
+    name: String,
+    account: ZoneAccount,
+}
+
+async fn get_zone_info(token: &str, zone_id: &str) -> Result<ZoneInfo, String> {
     let url = format!("{CF_API}/zones/{zone_id}");
     let mut init = RequestInit::new();
     init.with_method(Method::Get)
@@ -153,7 +159,7 @@ pub async fn get_zone_domain(token: &str, zone_id: &str) -> Result<String, Strin
         .send()
         .await
         .map_err(|e| e.to_string())?;
-    let body: ApiResponse<Zone> = resp.json().await.map_err(|e| e.to_string())?;
+    let body: ApiResponse<ZoneInfo> = resp.json().await.map_err(|e| e.to_string())?;
     if !body.success {
         let msg: Vec<&str> = body
             .errors
@@ -162,7 +168,85 @@ pub async fn get_zone_domain(token: &str, zone_id: &str) -> Result<String, Strin
             .collect();
         return Err(format!("CF API error: {}", msg.join("; ")));
     }
-    Ok(body.result.ok_or("CF API returned null zone")?.name)
+    Ok(body.result.ok_or("CF API returned null zone")?)
+}
+
+pub async fn get_zone_domain(token: &str, zone_id: &str) -> Result<String, String> {
+    Ok(get_zone_info(token, zone_id).await?.name)
+}
+
+pub async fn get_account_id(token: &str, zone_id: &str) -> Result<String, String> {
+    Ok(get_zone_info(token, zone_id).await?.account.id)
+}
+
+pub async fn get_destination_verified(
+    token: &str,
+    account_id: &str,
+    email: &str,
+) -> Result<bool, String> {
+    #[derive(Deserialize)]
+    struct Address {
+        email: Option<String>,
+        verified: Option<String>,
+    }
+
+    let url = format!("{CF_API}/accounts/{account_id}/email/routing/addresses");
+    let mut init = RequestInit::new();
+    init.with_method(Method::Get)
+        .with_headers(cf_headers(token)?);
+    let req = Request::new_with_init(&url, &init).map_err(|e| e.to_string())?;
+    let mut resp = Fetch::Request(req)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let body: ApiListResponse<Address> = resp.json().await.map_err(|e| e.to_string())?;
+    if !body.success {
+        let msg: Vec<&str> = body
+            .errors
+            .iter()
+            .filter_map(|e| e.message.as_deref())
+            .collect();
+        return Err(format!("CF API error: {}", msg.join("; ")));
+    }
+    Ok(body
+        .result
+        .unwrap_or_default()
+        .iter()
+        .find(|a| a.email.as_deref() == Some(email))
+        .map(|a| a.verified.is_some())
+        .unwrap_or(false))
+}
+
+pub async fn create_destination_address(
+    token: &str,
+    account_id: &str,
+    email: &str,
+) -> Result<(), String> {
+    let url = format!("{CF_API}/accounts/{account_id}/email/routing/addresses");
+    let req_body = serde_json::json!({ "email": email });
+
+    let mut init = RequestInit::new();
+    init.with_method(Method::Post)
+        .with_headers(cf_headers(token)?)
+        .with_body(Some(wasm_bindgen::JsValue::from_str(&req_body.to_string())));
+    let req = Request::new_with_init(&url, &init).map_err(|e| e.to_string())?;
+    let mut resp = Fetch::Request(req)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    #[derive(Deserialize)]
+    struct DestAddress {}
+    let body: ApiResponse<DestAddress> = resp.json().await.map_err(|e| e.to_string())?;
+    if !body.success {
+        let msg: Vec<&str> = body
+            .errors
+            .iter()
+            .filter_map(|e| e.message.as_deref())
+            .collect();
+        return Err(format!("CF API error: {}", msg.join("; ")));
+    }
+    Ok(())
 }
 
 pub async fn list_rules(token: &str, zone_id: &str) -> Result<Vec<Rule>, String> {

@@ -21,6 +21,7 @@ pub struct AppState {
     /// in production. Defaults to `*` when absent.
     pub allowed_origin: Option<String>,
     pub cf_zone_id: String,
+    pub cf_account_id: Option<String>,
     pub cf_email_domain: Option<String>,
     pub cf_api_token: String,
     pub jwt_secret: String,
@@ -35,6 +36,7 @@ impl AppState {
             oidc_redirect_uri: env.var("OIDC_REDIRECT_URI")?.to_string(),
             allowed_origin: env.var("ALLOWED_ORIGIN").ok().map(|v| v.to_string()),
             cf_zone_id: env.var("CF_ZONE_ID")?.to_string(),
+            cf_account_id: env.var("CF_ACCOUNT_ID").ok().map(|v| v.to_string()),
             cf_email_domain: env.var("CF_EMAIL_DOMAIN").ok().map(|v| v.to_string()),
             token_expiry: env.var("TOKEN_EXPIRY")?.to_string().parse().unwrap_or(1800),
             // secrets

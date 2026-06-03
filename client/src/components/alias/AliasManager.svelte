@@ -7,16 +7,15 @@
         DEFAULT_ALIAS_TEMPLATE,
     } from "../../lib/templates.js";
     import {
+        LoaderCircle,
         Plus,
         Dices,
         Clipboard,
         Check,
         Trash2,
-        LoaderCircle,
-        TriangleAlert,
     } from "lucide-svelte";
-
     import Toggle from "../Toggle.svelte";
+    import EmailVerification from "./EmailVerification.svelte";
 
     let {
         api,
@@ -37,15 +36,17 @@
     let copiedId = $state(null);
     let error = $state(null);
     let newAlias = $state(untrack(() => initialAlias));
+    let verified = $state(true);
 
     onMount(load);
 
     async function load() {
         error = null;
         await getAliases(api, {
-            onUpdate(fresh, dest, { fromCache }) {
+            onUpdate(fresh, dest, { fromCache, verified: v }) {
                 aliases = sortAliases(fresh);
                 destination = dest;
+                verified = v;
                 loading = false;
             },
             onError(e) {
@@ -122,133 +123,139 @@
     </div>
 {/if}
 
-<!-- New alias -->
-<form
-    onsubmit={(e) => {
-        e.preventDefault();
-        create();
-    }}
-    class="flex gap-2 {compact ? 'mb-4' : 'mb-6'}"
->
-    <input
-        bind:value={newAlias}
-        type="text"
-        placeholder="alias-name"
-        autocomplete="off"
-        autocapitalize="none"
-        required
-        class="form-input"
-    />
-    <button
-        type="button"
-        onclick={() => (newAlias = resolveTemplate(aliasTemplate, siteName))}
-        title="Generate random alias"
-        class="btn-outline"
+{#if !loading && !verified}
+    <EmailVerification {api} {compact} />
+{:else}
+    <!-- New alias -->
+    <form
+        onsubmit={(e) => {
+            e.preventDefault();
+            create();
+        }}
+        class="flex gap-2 {compact ? 'mb-4' : 'mb-6'}"
     >
-        <Dices size={sz} />
-    </button>
-    <button type="submit" disabled={creating} class="btn-primary">
-        {#if creating}
-            <LoaderCircle size={sz} class="animate-spin" />
-            {#if !compact}Adding…{/if}
-        {:else}
-            <Plus size={sz} />
-            {#if !compact}Add alias{/if}
-        {/if}
-    </button>
-</form>
-
-<!-- Alias list -->
-<div class="card">
-    <div class="card-header">
-        <h2
-            class={compact
-                ? "text-xs font-semibold text-gray-700"
-                : "section-title"}
+        <input
+            bind:value={newAlias}
+            type="text"
+            placeholder="alias-name"
+            autocomplete="off"
+            autocapitalize="none"
+            required
+            class="form-input"
+        />
+        <button
+            type="button"
+            onclick={() =>
+                (newAlias = resolveTemplate(aliasTemplate, siteName))}
+            title="Generate random alias"
+            class="btn-outline"
         >
-            {compact ? "Aliases" : "Email aliases"}
-        </h2>
-        {#if destination}
-            <span class="badge">
-                {#if compact}→ {destination}{:else}forwarding to <span
-                        class="font-medium text-gray-700">{destination}</span
-                    >{/if}
-            </span>
+            <Dices size={sz} />
+        </button>
+        <button type="submit" disabled={creating} class="btn-primary">
+            {#if creating}
+                <LoaderCircle size={sz} class="animate-spin" />
+                {#if !compact}Adding…{/if}
+            {:else}
+                <Plus size={sz} />
+                {#if !compact}Add alias{/if}
+            {/if}
+        </button>
+    </form>
+
+    <!-- Alias list -->
+    <div class="card">
+        <div class="card-header">
+            <h2
+                class={compact
+                    ? "text-xs font-semibold text-gray-700"
+                    : "section-title"}
+            >
+                {compact ? "Aliases" : "Email aliases"}
+            </h2>
+            {#if destination}
+                <span class="badge">
+                    {#if compact}→ {destination}{:else}forwarding to <span
+                            class="font-medium text-gray-700"
+                            >{destination}</span
+                        >{/if}
+                </span>
+            {/if}
+        </div>
+
+        {#if loading}
+            <div
+                class="px-5 py-8 text-center {compact
+                    ? 'text-xs'
+                    : 'text-sm'} text-gray-400"
+            >
+                Loading…
+            </div>
+        {:else if aliases.length === 0}
+            <div
+                class="px-5 py-8 text-center {compact
+                    ? 'text-xs'
+                    : 'text-sm'} text-gray-400"
+            >
+                No aliases yet.
+            </div>
+        {:else}
+            <ul class="divide-y divide-gray-100">
+                {#each aliases as alias (alias.id)}
+                    <li
+                        class="flex items-center {compact
+                            ? 'gap-2 px-3 py-2'
+                            : 'gap-4 px-5 py-4'} {alias.is_root
+                            ? 'opacity-70'
+                            : ''}"
+                    >
+                        <button
+                            onclick={() => copyAlias(alias)}
+                            aria-label="Copy alias"
+                            title="Copy to clipboard"
+                            class={copiedId === alias.id
+                                ? "text-green-500"
+                                : "btn-icon"}
+                        >
+                            {#if copiedId === alias.id}
+                                <Check size={sz} />
+                            {:else}
+                                <Clipboard size={sz} />
+                            {/if}
+                        </button>
+
+                        <span
+                            class="min-w-0 flex-1 truncate font-mono {compact
+                                ? 'text-xs'
+                                : 'text-sm'} {alias.enabled
+                                ? 'text-gray-900'
+                                : 'text-gray-400'}"
+                        >
+                            {alias.alias}
+                        </span>
+
+                        {#if alias.is_root}
+                            <span class="badge-brand"
+                                >{compact ? "login" : "login alias"}</span
+                            >
+                        {:else}
+                            <Toggle
+                                checked={alias.enabled}
+                                disabled={togglingId === alias.id}
+                                onchange={() => toggle(alias)}
+                            />
+
+                            <button
+                                onclick={() => remove(alias)}
+                                aria-label="Delete alias"
+                                class="btn-danger-icon"
+                            >
+                                <Trash2 size={sz} />
+                            </button>
+                        {/if}
+                    </li>
+                {/each}
+            </ul>
         {/if}
     </div>
-
-    {#if loading}
-        <div
-            class="px-5 py-8 text-center {compact
-                ? 'text-xs'
-                : 'text-sm'} text-gray-400"
-        >
-            Loading…
-        </div>
-    {:else if aliases.length === 0}
-        <div
-            class="px-5 py-8 text-center {compact
-                ? 'text-xs'
-                : 'text-sm'} text-gray-400"
-        >
-            No aliases yet.
-        </div>
-    {:else}
-        <ul class="divide-y divide-gray-100">
-            {#each aliases as alias (alias.id)}
-                <li
-                    class="flex items-center {compact
-                        ? 'gap-2 px-3 py-2'
-                        : 'gap-4 px-5 py-4'} {alias.is_root
-                        ? 'opacity-70'
-                        : ''}"
-                >
-                    <button
-                        onclick={() => copyAlias(alias)}
-                        aria-label="Copy alias"
-                        title="Copy to clipboard"
-                        class={copiedId === alias.id
-                            ? "text-green-500"
-                            : "btn-icon"}
-                    >
-                        {#if copiedId === alias.id}
-                            <Check size={sz} />
-                        {:else}
-                            <Clipboard size={sz} />
-                        {/if}
-                    </button>
-
-                    <span
-                        class="min-w-0 flex-1 truncate font-mono {compact
-                            ? 'text-xs'
-                            : 'text-sm'} {alias.enabled
-                            ? 'text-gray-900'
-                            : 'text-gray-400'}"
-                    >
-                        {alias.alias}
-                    </span>
-
-                    {#if alias.is_root}
-                        <span class="badge-brand"
-                            >{compact ? "login" : "login alias"}</span
-                        >
-                    {:else}
-                        <Toggle
-                            checked={alias.enabled}
-                            disabled={togglingId === alias.id}
-                            onchange={() => toggle(alias)}
-                        />
-
-                        <button
-                            onclick={() => remove(alias)}
-                            aria-label="Delete alias"
-                            class="btn-danger-icon"
-                        >
-                            <Trash2 size={sz} />
-                        </button>
-                    {/if}
-                </li>
-            {/each}
-        </ul>
-    {/if}
-</div>
+{/if}
